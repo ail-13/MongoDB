@@ -1,6 +1,14 @@
+# Игнорировать файлы состояния Terraform
 *.tfstate
-*.tfstate.*.backup
 *.tfstate.backup
-*.tfvars
+*.tfplan
 .terraform/
 .terraform.lock.hcl
+
+# Игнорировать файлы конфигурации Terraform
+*.tfvars
+*.tfvars.json
+
+# Игнорировать временные файлы
+*.tfbackup
+*.tfout
