@@ -16,6 +16,13 @@
 
         Conversions -> Import key -> Save private key
 
+1. Создаем файл конфигурации для Terraform `terraform.tfvars`
+
+        project         = "GCP_project_name"
+        username        = "mongo_user"
+        public_key_path = "C:\\data\\keys\\mongo"
+        vm_name         = "lesson-4"
+
 1. Разворачиваем все необходимые ресурсы через Terraform
 
         terraform init
