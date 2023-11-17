@@ -13,6 +13,8 @@ docker network create mongo-network
 
 # Запускаем контейнер с MongoDB
 docker run --name mongodb -p 27001:27001 -v /db:/db --network mongo-network -d mongodb:7.0
+# Запуск контейнера на оригинальном образе MongoDB
+# docker run --name mongodb -d -p 27001:27017 -v /db:/data/db -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=mongo123 mongo:7.0 --auth
 # Проверяем, запустился ли контейнер и MongoDB
 while ! docker exec -it mongodb mongosh --port 27001 --eval "quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)" &> /dev/null; do
     echo "Ждем запуска контейнера MongoDB..."
