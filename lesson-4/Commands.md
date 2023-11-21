@@ -5,6 +5,10 @@
 
     docker stats
 
+Показывает сколько дискового пространства занимают образы, контейнеры и volume
+
+    docker system df
+
 Показывает информаицю о контейнере
 
     docker inspect mongodb
