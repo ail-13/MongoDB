@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:5.0
+    container_name: mongodb
+    restart: always
+    env_file: ./db/.env
+    ports:
+      - 27001:27017
+    volumes:
+      - data:/data/db
+      - config:/data/configdb/:ro
+    #  - ./:/data/configdb/
+    #command: mongod -f /data/configdb/mongod.conf
+  client:
+    build:
+      context: ./client
+      dockerfile: ./Dockerfile
+    container_name: client
+    depends_on:
+      - mongodb
+    command: ["node", "./app.js"]
+
+volumes:
+  config:
+  data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /db
+
+
+
+# docker rm -f mongodb && docker rm -f client && docker volume prune -fa && docker volume rm mongo_data
