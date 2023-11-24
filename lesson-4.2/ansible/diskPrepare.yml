@@ -9,7 +9,7 @@
         path: /db
         state: directory
         recurse: true
-        mode: "700"
+        # mode: "700"
 
     - name: Форматирование диска под базу данных в XFS
       community.general.filesystem:
