@@ -1,0 +1,30 @@
+---
+- name: DiskPrepare
+  hosts: db
+  become: true
+
+  tasks:
+    - name: Создание точки монтирования /db
+      ansible.builtin.file:
+        path: /db
+        state: directory
+        recurse: true
+        mode: "700"
+
+    - name: Форматирование диска под базу данных в XFS
+      community.general.filesystem:
+        fstype: xfs
+        state: present  # Если файловой системы нет, то диск будет отформатирован
+                        # Если файлова система XFS, то идем дальше
+                        # Если фаловая система есть и она не XFS, то будет ошибка
+        dev: /dev/disk/by-id/google-mongo-disk
+
+    - name: Монтирование диска
+      ansible.posix.mount:
+        src: /dev/disk/by-id/google-mongo-disk
+        path: /db
+        fstype: xfs
+        state: mounted
+        opts: defaults
+        dump: 0
+        passno: 2

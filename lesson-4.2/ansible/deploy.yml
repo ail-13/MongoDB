@@ -1,0 +1,70 @@
+---
+- name: Deploy
+  hosts: db
+  vars:
+    mongo_host: "{{ ansible_host }}"
+    mongo_port: "{{ 27001 }}"
+    # Пользователь MongoDB, если БД еще не существует, то пользователь создается
+    mongo_user_name: root
+    mongo_user_pass: mongo123
+
+  tasks:
+    - name: Переносим docker-compose.yml на сервер
+      ansible.builtin.copy:
+        src: "./../docker-compose.yml"
+        dest: "/home/{{ vm_username }}/"
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "644"
+        directory_mode: "755"
+
+    - name: Переносим приложение
+      ansible.builtin.copy:
+        src: "./../app/"
+        dest: "/home/{{ vm_username }}/app/"
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "644"
+        directory_mode: "755"
+
+    - name: Переносим файлы MongoDB
+      ansible.builtin.copy:
+        src: "./../mongodb/"
+        dest: "/home/{{ vm_username }}/mongodb/"
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "644"
+        directory_mode: "755"
+
+    - name: Переносим настройки MongoDB
+      ansible.builtin.template:
+        src: templates/.env.j2
+        dest: "/home/{{ vm_username }}/mongodb/.env"
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "644"
+        # notify: restart mongod
+
+    - name: Переносим настройки приложения
+      ansible.builtin.template:
+        src: templates/db_config.json.j2
+        dest: "/home/{{ vm_username }}/app/src/db_config.json"
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "644"
+        # notify: restart app
+
+    - name: Запуск Docker Compose
+      community.general.docker_compose:
+        project_src: "/home/{{ vm_username }}/"
+        env_file: "./mongodb/.env"
+        state: present
+        build: true # пересобираем образ при изменении связанных данных (при этом создается куча безымянных образов)
+
+  # handlers:
+  #   - name: restart mongod
+  #     become: true
+  #     ansible.builtin.service:
+  #       name: mongod
+  #       state: restarted
+  #       enabled: true
