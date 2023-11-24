@@ -11,7 +11,7 @@
 
 Запустить проект и подтянуть файл с переменными
 
-    docker compose --env--file .env up
+    docker compose --env-file .env up
 
 Запустить проект под определенным именем
 
