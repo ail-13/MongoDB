@@ -1,4 +1,9 @@
 ---
-- import_playbook: diskPrepare.yml
-- import_playbook: dockerInstall.yml
-- import_playbook: deploy.yml
+- name: Конфигурирование диска для хранения БД
+  import_playbook: diskPrepare.yml
+
+- name: Установка Docker и dive
+  import_playbook: dockerInstall.yml
+
+- name: Развертывание базы данных и приложения
+  import_playbook: deploy.yml
