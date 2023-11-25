@@ -47,7 +47,17 @@
 
 https://console.cloud.google.com/iam-admin/serviceaccounts
 
+Либо можно выполнить авторизацию с рабочей машины командой (тогда параметр credentials можно удалить)
+
+    gcloud auth application-default login --no-launch-browser
+
 ## Примечание
 У файла динамического инвентори `./ansible/inventory.sh` должны быть права на выполнение
 
     chmod +x inventory.sh
+
+## Примечание
+В файле packer.json находится шаблон для Packer с описанием образа виртуальной машины с установленной MongoDB. Этот образ можно будет использовать при создании виртуальных машин
+
+        packer validate packer.json
+        packer build packer.json
