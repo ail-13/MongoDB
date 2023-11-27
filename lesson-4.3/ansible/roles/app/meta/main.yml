@@ -1,0 +1,10 @@
+galaxy_info:
+  role_name: app
+  author: ail-13
+  description: Устанавливает Docker на сервер и запускает приложение в контейнере
+
+  license: All Rights Reserved
+
+  min_ansible_version: "2.10"
+
+dependencies: []

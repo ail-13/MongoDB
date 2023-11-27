@@ -1,0 +1,46 @@
+---
+- name: Docker
+  block:
+    - name: Устанавливаем Docker
+      ansible.builtin.include_role:
+        name: docker
+      vars:
+        docker_user: "{{ vm_username }}"
+
+    - name: Устанавливаем dive
+      ansible.builtin.include_role:
+        name: dive
+
+- name: Application
+  block:
+    - name: Переносим приложение
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../{{ app_path }}/"
+        dest: "/home/{{ vm_username }}/app/"
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "644"
+        directory_mode: "755"
+
+    - name: Переносим переменные окружения для приложения
+      ansible.builtin.template:
+        src: templates/.env.j2
+        dest: "/home/{{ vm_username }}/app/.env"
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "644"
+
+    - name: Переносим docker-compose.yml на сервер
+      ansible.builtin.template:
+        src: "docker-compose.yml.j2"
+        dest: "/home/{{ vm_username }}/app/docker-compose.yml"
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "644"
+
+    - name: Запуск Docker Compose
+      community.general.docker_compose:
+        project_src: "/home/{{ vm_username }}/app"
+        env_file: .env
+        state: present
+        build: true

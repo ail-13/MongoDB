@@ -1,0 +1,11 @@
+---
+- name: AppInstall
+  hosts: db
+  roles:
+    - role: app
+      vars:
+        app_db_username: root
+        app_db_pass: mongo123
+        app_db_host: "{{ ansible_host }}"
+        app_db_port: 27001
+        app_path: app

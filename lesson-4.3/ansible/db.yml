@@ -1,0 +1,10 @@
+---
+- name: MongoInstall
+  hosts: db
+  roles:
+    - role: mongodb
+      vars:
+        mongodb_user_name: root
+        mongodb_user_pass: mongo123
+        mongodb_data_path: /db
+        mongodb_port: 27001
