@@ -1,11 +1,10 @@
-# Установка MongoDB в Docker с помошью Ansible
+# Установка MongoDB в Docker с помошью ролей Ansible
 
-Весь процесс разбит не несколько этапов:
+Весь процесс разбит на три этапа
 
 1. Создание и конфигурирование виртуального сервера
-1. Конфигурирование диска для хранения файлов базы данных. Плейбук `./ansible/diskPrepare.yml`
-1. Установка Docker и dive. Плейбук `./ansible/dockerInstall.yml`
-1. Создание образов контейнеров и запуск контейнеров. Плейбук `./ansible/deploy.yml`
+1. Запуск на сервере роли `mongodb`. Плейбук `./ansible/db.yml`
+1. Запуск на сервере роли `app`. Плейбук `./ansible/app.yml`
 
 ## Запуск
 1. Создаем файл конфигурации для Terraform `./terraform/terraform.tfvars`
@@ -13,7 +12,7 @@
         project          = "GCP_project_name"
         username         = "mongo_user"
         private_key_path = "~/.ssh/mongo_user"
-        vm_name          = "lesson-4"
+        vm_name          = "lesson-4.3"
 
 1. Разворачиваем все необходимые ресурсы через Terraform, после завершения Terraform выдаст ip адрес созданного сервера
 
@@ -21,10 +20,15 @@
         terraform init
         terraform apply
 
-1. Запускаем плейбук Ansible, он установит все необходимые компоненты, создаст контейнер с базой и контейнер с клиентом. Контейнер с клиентом подключится к базе test и в коллекции notes создаст несколько записей
+1. Запускаем плейбук Ansible с ролью `mongodb`, она установит все необходимые компоненты и создаст контейнер с запущенной MongoDB
 
         cd ./ansible
-        ansible-playbook playbook.yml
+        ansible-playbook db.yml
+
+1. Запускаем плейбук Ansible с ролью `app`, она установит все необходимые компоненты и контейнер с клиентом. Контейнер подключится к базе `test` и в коллекции `notes` создаст несколько записей
+
+        cd ./ansible
+        ansible-playbook app.yml
 
 1. По ip адреу который выдал Terraform на предыдущем шаге можно будет подключиться к базе
 
