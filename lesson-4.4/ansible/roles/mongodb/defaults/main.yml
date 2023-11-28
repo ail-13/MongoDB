@@ -1,0 +1,5 @@
+---
+mongodb_data_path: /db
+mongodb_port: 27017
+mongodb_version: 4.4
+env: local

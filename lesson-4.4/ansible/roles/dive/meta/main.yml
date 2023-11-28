@@ -1,0 +1,10 @@
+galaxy_info:
+  role_name: dive
+  author: ail-13
+  description: Устанавливает на сервер dive
+
+  license: All Rights Reserved
+
+  min_ansible_version: "2.4"
+
+dependencies: []
