@@ -1,6 +1,6 @@
 # Игнорировать файлы состояния Terraform
 *.tfstate
-*.tfstate.backup
+*.tfstate.*
 *.tfplan
 .terraform/
 .terraform.lock.hcl

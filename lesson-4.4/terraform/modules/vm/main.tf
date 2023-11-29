@@ -24,15 +24,6 @@ resource "google_compute_instance" "vm" {
     ssh-keys = "${var.username}:${file("${var.private_key_path}.pub")}"
   }
 
-  connection {
-    type = "ssh"
-    user = var.username
-    # Указывает Terraform что нужно использовать ключ из ssh-агента. Для этого должен быть запущен Pagent и там должен быть ключ
-    # agent = true
-    private_key = file(var.private_key_path)
-    host  = google_compute_instance.vm.network_interface.0.access_config.0.nat_ip
-  }
-
   depends_on = [google_compute_disk.disk]
 }
 resource "google_compute_disk" "disk" {
