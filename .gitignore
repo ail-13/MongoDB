@@ -19,3 +19,12 @@ credentials.json
 
 # Игнорируем комьюнити роли
 .imported_roles/
+
+# Игнорируем ненужные файлы Vagrant и Molecule
+.vagrant/
+*.vdi
+*.log
+*.pyc
+.molecule
+.cache
+.pytest_cache

@@ -1,0 +1,52 @@
+Vagrant.configure("2") do |config|
+  config.vm.provider :virtualbox do |v|
+    v.memory = 1024
+    config.vm.synced_folder ".", "/vagrant", disabled: true
+    # Отключаем последовательный порт, иначе будет ошибка при запуске
+    v.customize ["modifyvm", :id, "--uartmode1", "disconnected"]
+  end
+  
+  config.vm.define "dbserver" do |db|
+    db.vm.box = "ubuntu/focal64"
+    db.vm.hostname = "dbserver"
+    db.vm.disk :disk, size: "10GB", primary: true
+    db.vm.disk :disk, size: "10GB", name: "additional_disk"
+    db.vm.network :private_network, ip: "192.168.56.10"
+  
+    db.vm.provision "ansible" do |ansible|
+        ansible.playbook = "playbooks/db.yml"
+        ansible.groups = {
+            "db" => ["dbserver"],
+            "db:vars" => {
+                "vm_username" => "vagrant",
+                "vm_disk" => "sdc",
+                "mongodb_data_path" => "/db",
+                "mongodb_port" => 27001,
+                "mongodb_user_name" => "root",
+                "mongodb_user_pass" => "mongo123"
+            }
+        }
+    end
+  end
+  
+  config.vm.define "appserver" do |app|
+    app.vm.box = "ubuntu/focal64"
+    app.vm.hostname = "appserver"
+    app.vm.network :private_network, ip: "192.168.56.20"
+
+    app.vm.provision "ansible" do |ansible|
+        ansible.playbook = "playbooks/app.yml"
+        ansible.groups = {
+            "app" => ["appserver"],
+            "app:vars" => {
+                "vm_username" => "vagrant",
+                "app_db_host" => "192.168.56.10",
+                "app_db_port" => 27001,
+                "app_db_username" => "root",
+                "app_db_pass" => "mongo123",
+                "app_path" => "../../app/"
+            }
+        }
+    end
+  end
+end

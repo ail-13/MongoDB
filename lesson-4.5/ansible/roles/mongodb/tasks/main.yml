@@ -1,0 +1,80 @@
+---
+- name: Выводим информацию о текущем окружении
+  debug:
+    msg: "Этот хост является {{ env }}"
+
+- name: Docker
+  block:
+    - name: Устанавливаем Docker
+      ansible.builtin.include_role:
+        name: docker
+      vars:
+        docker_user: "{{ vm_username }}"
+
+    - name: Устанавливаем dive
+      ansible.builtin.include_role:
+        name: dive
+      when: env in ["stage", "dev"]
+
+- name: DiskPrepare
+  become: true
+  block:
+    - name: Создание точки монтирования
+      ansible.builtin.file:
+        path: "{{ mongodb_data_path }}"
+        state: directory
+        recurse: true
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "755"
+
+    - name: Форматирование диска под базу данных в XFS
+      community.general.filesystem:
+        fstype: xfs
+        state: present  # Если файловой системы нет, то диск будет отформатирован
+                        # Если файлова система XFS, то идем дальше
+                        # Если фаловая система есть и она не XFS, то будет ошибка
+        dev: /dev/{{ vm_disk }}
+
+    - name: Монтирование диска
+      ansible.posix.mount:
+        src: /dev/{{ vm_disk }}
+        path: "{{ mongodb_data_path }}"
+        fstype: xfs
+        state: mounted
+        opts: defaults
+        dump: 0
+        passno: 2
+
+- name: MongoDB
+  block:
+    - name: Создаем каталог MongoDB
+      ansible.builtin.file:
+        path: "/home/{{ vm_username }}/mongodb"
+        state: directory
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "755"
+
+    - name: Переносим настройки пользователя MongoDB
+      ansible.builtin.template:
+        src: .env.j2
+        dest: "/home/{{ vm_username }}/mongodb/.env"
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "644"
+
+    - name: Переносим docker-compose.yml на сервер
+      ansible.builtin.template:
+        src: "docker-compose.yml.j2"
+        dest: "/home/{{ vm_username }}/mongodb/docker-compose.yml"
+        group: "{{ vm_username }}"
+        owner: "{{ vm_username }}"
+        mode: "644"
+
+    - name: Запуск Docker Compose
+      community.general.docker_compose:
+        project_src: "/home/{{ vm_username }}/mongodb"
+        env_file: .env
+        state: present
+        build: true
