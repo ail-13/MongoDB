@@ -1,0 +1,34 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+  options:
+    boot_timeout: 1800
+lint: yamllint
+platforms:
+  - name: instance
+    box: ubuntu/focal64
+    provider_raw_config_args:
+      - "customize ['modifyvm', :id, '--uartmode1', 'disconnected']"
+      # создаем дополнительный диск
+      - "customize ['createmedium', 'disk', '--filename', 'molecule_additional_disk', '--size', '2048']"
+      - "customize ['storageattach', :id, '--storagectl', 'SCSI', '--port', '2', '--type', 'hdd', '--medium', 'molecule_additional_disk.vdi']"
+provisioner:
+  name: ansible
+  ansible_user: vagrant
+  inventory:
+    group_vars:
+      all:
+        vm_username: vagrant
+        vm_disk: sdc
+        mongodb_user_name: root
+        mongodb_user_pass: mongo123
+  lint:
+    name: ansible-lint
+# scenario:
+#   name: default
+verifier:
+  name: testinfra

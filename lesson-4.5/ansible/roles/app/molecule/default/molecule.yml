@@ -1,0 +1,32 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+  options:
+    boot_timeout: 1800
+lint: yamllint
+platforms:
+  - name: instance
+    box: ubuntu/focal64
+    provider_raw_config_args:
+      - "customize ['modifyvm', :id, '--uartmode1', 'disconnected']"
+provisioner:
+  name: ansible
+  ansible_user: vagrant
+  inventory:
+    group_vars:
+      all:
+        vm_username: vagrant
+        app_db_username: root
+        app_db_pass: mongo123
+        app_db_host: 111.111.111.111
+        app_path: files/app/
+  lint:
+    name: ansible-lint
+# scenario:
+#   name: default
+verifier:
+  name: testinfra

@@ -39,6 +39,14 @@
         mongosh 192.168.56.10:27001 -u root -p mongo123
         mongodb://root:mongo123@192.168.56.10:27001
 
+## Тестирование ролей
+1. Переходим в папку с ролью
+
+        cd ./ansible/roles/docker
+
+1. Запускаем тестирование
+
+        molecule test
 
 ## Примечание
 Т.к. Vagrant динамически генерирует инвентори файл для провижининга, то хостовые переменные не будут применены и поэтому все их необходимо указывать в Vagrantfile
@@ -77,3 +85,14 @@
     workon test-env
     deactivate
     rmvirtualenv test-env
+
+## Примечание
+При работе с molecule можно использовать команды:
+
+    molecule create             # Создает инстансы
+    molecule list               # Показывает список инстансов
+    molecule login -h instance  # Подключается к инстансу
+    molecule converge           # Запускает плейбук для созданных инстансов
+    molecule verify             # Запускает тесты
+    molecule destroy            # Удаялет созданные инстансы
+    molecule test               # Запускает все шаги тестирования (lint, cleanup, destroy, create, converge, idempotence, side_effect, verify, destroy)
