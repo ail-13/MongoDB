@@ -26,7 +26,7 @@
         recurse: true
         group: "{{ vm_username }}"
         owner: "{{ vm_username }}"
-        mode: "755"
+        # mode: "755"
 
     - name: Форматирование диска под базу данных в XFS
       community.general.filesystem:
@@ -63,6 +63,11 @@
         group: "{{ vm_username }}"
         owner: "{{ vm_username }}"
         mode: "644"
+
+    - name: Считываем UID пользователя
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ vm_username }}"
 
     - name: Переносим docker-compose.yml на сервер
       ansible.builtin.template:
