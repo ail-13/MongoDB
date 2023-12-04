@@ -3,4 +3,5 @@ FROM node:14
 WORKDIR /app
 RUN npm install mongodb@3.6.2
 COPY ./src ./src
+EXPOSE 3000
 CMD ["node", "./src/app.js"]

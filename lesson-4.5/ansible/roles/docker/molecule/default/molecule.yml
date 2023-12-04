@@ -5,12 +5,13 @@ driver:
   name: vagrant
   provider:
     name: virtualbox
-  options:
-    boot_timeout: 1800
 lint: yamllint
 platforms:
   - name: instance
     box: ubuntu/focal64
+    config_options:
+      vm.boot_timeout: 1800
+      synced_folder: false
     provider_raw_config_args:
       - "customize ['modifyvm', :id, '--uartmode1', 'disconnected']"
 provisioner:
