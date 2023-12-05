@@ -35,6 +35,11 @@
         owner: "{{ vm_username }}"
         mode: "644"
 
+    - name: Считываем UID пользователя
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ vm_username }}"
+
     - name: Переносим docker-compose.yml на сервер
       ansible.builtin.template:
         src: "docker-compose.yml.j2"

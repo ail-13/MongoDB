@@ -8,7 +8,6 @@ services:
     env_file: ./.env
     ports:
       - {{ mongodb_port }}:27017
-    user: "{{ ansible_facts.getent_passwd.mongo_user[1] }}:{{ ansible_facts.getent_passwd.mongo_user[2] }}"
     volumes:
       - data:/data/db
       - config:/data/configdb:ro

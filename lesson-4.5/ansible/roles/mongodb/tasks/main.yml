@@ -24,8 +24,8 @@
         path: "{{ mongodb_data_path }}"
         state: directory
         recurse: true
-        group: "{{ vm_username }}"
-        owner: "{{ vm_username }}"
+        # group: "{{ vm_username }}"
+        # owner: "{{ vm_username }}"
         # mode: "755"
 
     - name: Форматирование диска под базу данных в XFS
@@ -63,11 +63,6 @@
         group: "{{ vm_username }}"
         owner: "{{ vm_username }}"
         mode: "644"
-
-    - name: Считываем UID пользователя
-      ansible.builtin.getent:
-        database: passwd
-        key: "{{ vm_username }}"
 
     - name: Переносим docker-compose.yml на сервер
       ansible.builtin.template:
