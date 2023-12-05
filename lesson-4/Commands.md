@@ -90,6 +90,10 @@
 
     docker exec -it mongodb bash
 
+Удалить все контейнеры
+
+    docker rm $(docker ps -aq)
+
 ## Работа с сетью
 Список всех сетей
 
