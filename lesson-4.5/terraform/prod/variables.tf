@@ -28,3 +28,7 @@ variable "firewall_filter" {
 variable "private_key_path" {
   description = "Путь к приватному ssh-ключу"
 }
+variable "vm_count" {
+  description = "Количество создаваемых серверов"
+  default     = 1
+}

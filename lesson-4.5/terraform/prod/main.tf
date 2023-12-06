@@ -22,6 +22,7 @@ module "app" {
   username         = var.username
   private_key_path = var.private_key_path
   create_disk      = false
+  vm_count         = var.vm_count
   env              = "prod"
 }
 module "vpc_app" {
@@ -29,6 +30,7 @@ module "vpc_app" {
   source_ranges = var.firewall_filter
   name          = "${var.project_name}-app"
   env           = "prod"
+  vm_count      = var.vm_count
 }
 
 module "db" {
@@ -39,10 +41,12 @@ module "db" {
   private_key_path = var.private_key_path
   create_disk      = true
   env              = "prod"
+  vm_count         = var.vm_count
 }
 module "vpc_db" {
   source        = "./../modules/vpc"
   source_ranges = var.firewall_filter
   name          = "${var.project_name}-db"
   env           = "prod"
+  vm_count      = var.vm_count
 }

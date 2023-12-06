@@ -8,3 +8,7 @@ variable "env" {
   type        = string
   description = "Окружение"
 }
+
+variable "vm_count" {
+  description = "Количество создаваемых серверов"
+}
