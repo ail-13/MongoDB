@@ -1,0 +1,5 @@
+mongodb_data_path: /mongodb
+mongodb_port: 27001
+
+# Добавляем секреты
+include_vars: secrets.yml

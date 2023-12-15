@@ -1,0 +1,34 @@
+---
+- name: Выводим информацию о текущем окружении
+  debug:
+    msg: "Этот хост является {{ env }}"
+
+- name: Устанавливаем MongoDB
+  become: true
+  block:
+   - include_tasks: install_mongodb.yml
+
+- name: Монтируем диск под базу данных
+  become: true
+  block:
+   - include_tasks: mount_disk.yml
+
+- name: Переносим настройки и запускаем MongoDB
+  become: true
+  block:
+   - include_tasks: config_mongodb.yml
+
+- name: Инициализируем replicaset MongoDB
+  become: true
+  block:
+   - include_tasks: replicaset_init.yml
+
+- name: Устанавливаем Percona Backup for MongoDB
+  become: true
+  block:
+   - include_tasks: install_pbm.yml
+
+- name: Настраиваем Percona Backup for MongoDB
+  become: true
+  block:
+   - include_tasks: config_pbm.yml

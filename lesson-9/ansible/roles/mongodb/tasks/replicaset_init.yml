@@ -1,0 +1,107 @@
+---
+- name: Проверяем что количество хостов нечетное
+  fail:
+    msg: "{{ 'Должно быть больше одного хоста' if ansible_play_hosts | length == 1 else 'Количество хостов должно быть не четным' }}"
+  when: ansible_play_hosts | length % 2 == 0 or ansible_play_hosts | length == 1
+
+- name: Проверяем репликацию MongoDB
+  block:
+    - name: Проверяем наличие пользователей MongoDB в реплике
+      community.mongodb.mongodb_status:
+        login_port: "{{ mongodb_port }}"
+        replica_set: "{{ mongodb_rs_name }}"
+        login_user: "{{ item.name }}"
+        login_password: "{{ item.pass }}"
+      loop:
+        - name: "{{ mongodb_root_name }}"
+          pass: "{{ mongodb_root_pass }}"
+
+        - name: "{{ mongodb_backup_name }}"
+          pass: "{{ mongodb_backup_pass }}"
+      no_log: true
+
+  rescue:
+    - name: Переносим настройки MongoDB для инициализации replicaset
+      ansible.builtin.template:
+        src: mongod_init.conf.j2
+        dest: /etc/mongod.conf
+        owner: root
+        group: root
+        mode: 0644
+      changed_when: false
+
+    - name: Перезапускаем MongoDB
+      ansible.builtin.service:
+        name: mongod
+        state: restarted
+
+    - name: Инициализируем replicaset
+      community.mongodb.mongodb_replicaset:
+        replica_set: "{{ mongodb_rs_name }}"
+        login_port: "{{ mongodb_port }}"
+        members: "{{ ansible_play_hosts | map('extract', hostvars, ['ansible_host']) | zip_longest([], fillvalue=':' + mongodb_port | string) | map('join') }}"
+      when: ansible_hostname == ansible_play_hosts[0]
+
+    - name: Ждем пока replicaset инициализируется
+      community.mongodb.mongodb_status:
+        replica_set: "{{ mongodb_rs_name }}"
+        login_port: "{{ mongodb_port }}"
+        poll: 5
+        interval: 10
+      when: ansible_hostname == ansible_play_hosts[0]
+
+    - name: Создаем роль для резервного копирования
+      community.mongodb.mongodb_role:
+        login_port: "{{ mongodb_port }}"
+        database: admin
+        state: present
+        replica_set: "{{ mongodb_rs_name }}"
+        name: pbmAnyAction
+        privileges:
+          - actions: ["anyAction"]
+            resource: { "anyResource": true }
+
+    - name: Создаем пользователей MongoDB
+      community.mongodb.mongodb_user:
+        login_port: "{{ mongodb_port }}"
+        database: admin
+        state: present
+        replica_set: "{{ mongodb_rs_name }}"
+        update_password: always
+        name: "{{ item.name }}"
+        password: "{{ item.pass }}"
+        roles: "{{ item.roles }}"
+      no_log: true
+      loop:
+        - name: "{{ mongodb_root_name }}"
+          pass: "{{ mongodb_root_pass }}"
+          roles:
+            - root
+
+        - name: "{{ mongodb_backup_name }}"
+          pass: "{{ mongodb_backup_pass }}"
+          roles:
+            - readWrite
+            - backup
+            - clusterMonitor
+            - restore
+            - pbmAnyAction
+
+        - name: "{{ mongodb_user_name }}"
+          pass: "{{ mongodb_user_pass }}"
+          roles:
+            - readWriteAnyDatabase
+
+    - name: Возвращаем настройки MongoDB
+      ansible.builtin.template:
+        src: mongod.conf.j2
+        dest: /etc/mongod.conf
+        owner: root
+        group: root
+        mode: 0644
+      changed_when: false
+
+    - name: Перезапускаем MongoDB
+      ansible.builtin.service:
+        name: mongod
+        state: restarted

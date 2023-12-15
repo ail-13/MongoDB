@@ -1,0 +1,31 @@
+---
+- name: Создаем точку монтирования
+  ansible.builtin.file:
+    path: "{{ mongodb_data_path }}"
+    state: directory
+
+- name: Форматирование диска под базу данных в XFS
+  community.general.filesystem:
+    fstype: xfs
+    state: present  # Если файловой системы нет, то диск будет отформатирован
+                    # Если файлова система XFS, то идем дальше
+                    # Если фаловая система есть и она не XFS, то будет ошибка
+    dev: /dev/{{ vm_disk }}
+
+- name: Монтирование диска
+  ansible.posix.mount:
+    src: /dev/{{ vm_disk }}
+    path: "{{ mongodb_data_path }}"
+    fstype: xfs
+    state: mounted
+    opts: defaults
+    dump: 0
+    passno: 2
+  
+- name: Меняем права доступа к каталогу MongoDB
+  ansible.builtin.file:
+    path: "{{ mongodb_data_path }}"
+    state: directory
+    recurse: true
+    group: mongodb
+    owner: mongodb

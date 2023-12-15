@@ -1,0 +1,5 @@
+vm_username: vagrant
+app_db_username: root
+app_db_pass: mongo123
+app_db_host: 111.111.111.111
+app_path: files/app/

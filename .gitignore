@@ -29,3 +29,6 @@ credentials.json
 .cache
 .pytest_cache
 __pycache__/
+
+# Игнорируем файлы с ключами
+keyfile

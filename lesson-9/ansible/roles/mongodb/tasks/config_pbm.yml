@@ -1,0 +1,77 @@
+- name: Настраиваем подключение pbm-agent к MongoDB
+  ansible.builtin.copy:
+    content: 'PBM_MONGODB_URI="mongodb://{{ mongodb_backup_name }}:{{ mongodb_backup_pass }}@localhost:{{ mongodb_port }}/?authSource=admin"'
+    dest: /etc/default/pbm-agent
+  no_log: true
+  register: pbm_agent_config_result
+
+- name: Настраиваем подключение pbm к MongoDB
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^PBM_MONGODB_URI='
+    line: 'PBM_MONGODB_URI="mongodb://{{ mongodb_backup_name }}:{{ mongodb_backup_pass }}@localhost:{{ mongodb_port }}/?authSource=admin&replSetName={{ mongodb_rs_name }}"'
+  no_log: true
+
+- name: Считываем текущие настройки pbm config
+  ansible.builtin.command:
+    cmd: pbm config --mongodb-uri mongodb://{{ mongodb_backup_name }}:{{ mongodb_backup_pass }}@localhost:{{ mongodb_port }}/?authSource=admin&replSetName={{ mongodb_rs_name }}
+  changed_when: false
+  no_log: true
+  register: pbm_config_result
+  when: percona_install_result is not defined or not percona_install_result.changed
+
+- name: Сравниваем результат с файлом шаблона
+  ansible.utils.fact_diff:
+    before: "{{ pbm_config_result.stdout | from_yaml | to_nice_yaml }}"
+    after: "{{ lookup('template', 'pbm_config.yaml.j2') | from_yaml | to_nice_yaml }}"
+    plugin:
+      vars:
+         skip_lines:
+          - '.*access-key-id.*'
+          - '.*secret-access-key.*'
+  register: check_result
+  when: percona_install_result is not defined or not percona_install_result.changed
+
+- name: Копируем настройки pbm во временную папку
+  ansible.builtin.template:
+    src: pbm_config.yaml.j2
+    dest: /tmp/pbm_config.yaml
+  changed_when: false
+  no_log: true
+  when: percona_install_result is defined and percona_install_result.changed or check_result.changed
+
+- name: Обновляем настройки pbm config
+  ansible.builtin.command:
+    cmd: pbm config --file /tmp/pbm_config.yaml --mongodb-uri mongodb://{{ mongodb_backup_name }}:{{ mongodb_backup_pass }}@localhost:{{ mongodb_port }}/?authSource=admin&replSetName={{ mongodb_rs_name }}
+  no_log: true
+  when: percona_install_result is defined and percona_install_result.changed or check_result.changed
+
+- name: Удаляем файл с настройками pbm из временной папки
+  ansible.builtin.file:
+    path: /tmp/pbm_config.yaml
+    state: absent
+  changed_when: false
+  when: percona_install_result is defined and percona_install_result.changed or check_result.changed
+
+- name: Перезапускаем pbm-agent
+  become: true
+  ansible.builtin.service:
+    name: pbm-agent
+    state: restarted
+  when: pbm_agent_config_result.changed or percona_install_result is defined and percona_install_result.changed or check_result.changed
+
+- name: Проверяем что pbm-agent запущен
+  ansible.builtin.service:
+    name: pbm-agent
+    state: started
+    enabled: true
+
+- name: Проверяем pbm-agent
+  ansible.builtin.command:
+    cmd: "pbm-agent version"
+  changed_when: false
+
+- name: Проверяем pbm status
+  ansible.builtin.command:
+    cmd: "pbm status"
+  changed_when: false

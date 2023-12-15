@@ -1,0 +1,28 @@
+---
+- name: Установка дополнительных пакетов
+  ansible.builtin.apt:
+    update_cache: true
+    state: present
+    name:
+      - curl
+
+- name: Добавляем ключ Percona
+  ansible.builtin.apt_key:
+    id: 9334A25F8507EFA5
+    keyserver: keyserver.ubuntu.com
+    state: present
+
+- name: Добавление репозитория Percona
+  ansible.builtin.apt_repository:
+    update_cache: true
+    repo: deb http://repo.percona.com/pbm/apt {{ ansible_distribution_release }} main
+    state: present
+    filename: percona-pbm-release
+
+- name: Установка Percona
+  ansible.builtin.apt:
+    update_cache: true
+    state: present
+    name:
+      - percona-backup-mongodb
+  register: percona_install_result
