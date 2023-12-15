@@ -6,7 +6,26 @@
 
 - name: Проверяем репликацию MongoDB
   block:
-    - name: Проверяем наличие пользователей MongoDB в реплике
+    - name: Проверяем наличие пользователей MongoDB
+      community.mongodb.mongodb_shell:
+        login_port: "{{ mongodb_port }}"
+        login_user: "{{ item.name }}"
+        login_password: "{{ item.pass }}"
+        mongo_cmd: auto
+        eval: "db.admin.runCommand({ ping: 1 })"
+      loop:
+        - name: "{{ mongodb_root_name }}"
+          pass: "{{ mongodb_root_pass }}"
+
+        - name: "{{ mongodb_backup_name }}"
+          pass: "{{ mongodb_backup_pass }}"
+
+        - name: "{{ mongodb_user_name }}"
+          pass: "{{ mongodb_user_pass }}"
+      changed_when: false
+      no_log: true
+
+    - name: Проверяем статус replicaset MongoDB
       community.mongodb.mongodb_status:
         login_port: "{{ mongodb_port }}"
         replica_set: "{{ mongodb_rs_name }}"
@@ -21,6 +40,31 @@
       no_log: true
 
   rescue:
+    - name: Останавливаем MongoDB
+      ansible.builtin.service:
+        name: mongod
+        state: stopped
+    
+    # Для настройки MongoDB необходдимо отключить авторизацию,
+    # поэтому закрываем порт MongoDB для всех кроме узлов реплики
+    - name: Открываем порт MongoDB только для IP адресов узлов реплики
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "{{ mongodb_port }}"
+        source: "{{ item }}"
+        jump: ACCEPT
+        state: present
+      loop: "{{ (ansible_play_hosts | map('extract', hostvars, ['ansible_host']) | list) + ['127.0.0.1'] }}"
+
+    - name: Закрываем для всех порт MongoDB
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "{{ mongodb_port }}"
+        jump: DROP
+        state: present
+    
     - name: Переносим настройки MongoDB для инициализации replicaset
       ansible.builtin.template:
         src: mongod_init.conf.j2
@@ -28,12 +72,11 @@
         owner: root
         group: root
         mode: 0644
-      changed_when: false
 
-    - name: Перезапускаем MongoDB
+    - name: Запускаем MongoDB
       ansible.builtin.service:
         name: mongod
-        state: restarted
+        state: started
 
     - name: Инициализируем replicaset
       community.mongodb.mongodb_replicaset:
@@ -99,9 +142,26 @@
         owner: root
         group: root
         mode: 0644
-      changed_when: false
 
     - name: Перезапускаем MongoDB
       ansible.builtin.service:
         name: mongod
         state: restarted
+
+    - name: Удаляем временные правила брандмауэра
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "{{ mongodb_port }}"
+        source: "{{ item }}"
+        jump: ACCEPT
+        state: absent
+      loop: "{{ (ansible_play_hosts | map('extract', hostvars, ['ansible_host']) | list) + ['127.0.0.1'] }}"
+
+    - name: Удаляем временные правила брандмауэра
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "{{ mongodb_port }}"
+        jump: DROP
+        state: absent
