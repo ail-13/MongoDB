@@ -31,8 +31,8 @@ resource "google_compute_disk" "disk" {
   # Создаем отдельный диск для базы данных
   # https://gcloud-compute.com/disks.html
   count = var.create_disk ? var.vm_count : 0
-  name = "${var.vm_name}-${var.env}-disk-${count.index + 1}"
-  size = 10
-  type = "pd-ssd"
-  zone = var.zone
+  name  = "${var.vm_name}-${var.env}-disk-${count.index + 1}"
+  size  = 10
+  type  = "pd-ssd"
+  zone  = var.zone
 }

@@ -1,5 +1,5 @@
 output "_env" {
-  value = "prod"
+  value = local.env
 }
 
 output "inventory" {
@@ -16,7 +16,14 @@ output "inventory" {
         {
           for instance in module.app.instances : instance.name => {
             ansible_host = instance.ip
-            mongodb_ip   = module.db.instances[0].ip
+            mongodb_ip   = module.db.instances[*].ip
+            vm_username  = var.username
+          }
+        },
+        {
+          for instance in module.monitoring.instances : instance.name => {
+            ansible_host = instance.ip
+            mongodb_ip   = module.db.instances[*].ip
             vm_username  = var.username
           }
         }
@@ -30,6 +37,11 @@ output "inventory" {
     db : {
       hosts : [
         for instance in module.db.instances : instance.name
+      ]
+    },
+    monitoring : {
+      hosts : [
+        for instance in module.monitoring.instances : instance.name
       ]
     }
   }

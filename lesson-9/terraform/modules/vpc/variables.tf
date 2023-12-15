@@ -1,7 +1,7 @@
 variable "source_ranges" {
   description = "Разрешенные ip-адреса"
 }
-variable "name" {
+variable "vm_name" {
   description = "Название сервиса, оно используется в качестве тега"
 }
 variable "env" {
@@ -10,5 +10,9 @@ variable "env" {
 }
 
 variable "vm_count" {
-  description = "Количество создаваемых серверов"
+  description = "Количество серверов"
+}
+
+variable "ports" {
+  description = "Порты которые нужно открыть"
 }
