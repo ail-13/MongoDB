@@ -49,12 +49,13 @@ module "monitoring" {
   zone             = var.zone
   username         = var.username
   private_key_path = var.private_key_path
-  create_disk      = false
+  create_disk      = true
   env              = local.env
   vm_count         = 1
 }
 
-module "mongodb_port" {
+# Открываем порты для сервера с БД
+module "db_mongodb_port" {
   source = "./../modules/vpc"
   source_ranges = concat(
     module.db.instances[*].ip,
@@ -67,7 +68,8 @@ module "mongodb_port" {
   env      = local.env
   vm_count = var.db_count
 }
-module "monitoring_port" {
+# Открываем порты для сервера с мониторингом
+module "monitoring_web_port" {
   source        = "./../modules/vpc"
   source_ranges = var.monitoring_source_ranges
   vm_name       = "${var.project_name}-monitoring"
@@ -75,7 +77,8 @@ module "monitoring_port" {
   env           = local.env
   vm_count      = 1
 }
-module "app_port" {
+# Открываем порты для сервера с приложением
+module "app_web_port" {
   source        = "./../modules/vpc"
   source_ranges = ["0.0.0.0/0"]
   vm_name       = "${var.project_name}-app"

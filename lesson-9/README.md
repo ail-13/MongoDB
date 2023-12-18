@@ -1,11 +1,14 @@
-# Разворачиваем реплицированный кластер MongoDB
+# Разворачиваем реплицированный кластер MongoDB с резервным копированием и мониторингом
 
-Будет создан реплицированный кластер MongoDB c резервным копированием в Google Cloud Storage. Для подключения к базе данных будет созданы пользователи root, backup и user. Все настройки будут производиться через Ansible.
+Все настройки будут производиться через Terraform и Ansible. В результате будет создано:
+1. Реплицированный кластер MongoDB. Для подключения к базе данных будет созданы пользователи root, backup и user.
+1. Сервер мониторинга Percona Monitoring and Management (PMM)
+1. Сервер с приложением, которое будет подключаться к базе данных и создавать записи в коллекции notes
 
-Весь процесс состоит из нескольких этапов:
+Весь процесс состоит из двух этапов:
 
 1. Создание виртуальных машин
-1. Запуск роли Ansible которая установит MongoDB, настроит репликацию и бекап
+1. Запуск плейбука Ansible который установит все необходимые компоненты
 
 ## Запуск
 1. Создаем файл конфигурации для Terraform `./terraform/stage/terraform.tfvars`. Количество серверов с базой данных `db_count` должно быть нечетным, так как MongoDB требует нечетное количество серверов для репликации
@@ -16,6 +19,7 @@
         project_name     = "lesson-9"
         app_count        = 1
         db_count         = 3
+        mongodb_source_ranges = ["0.0.0.0/0"]
 
 1. Разворачиваем все необходимые ресурсы через Terraform, после завершения Terraform выдаст ip адреса созданных серверов
 
@@ -30,38 +34,46 @@
 
         app_db_username: root
         app_db_pass:     mongo123
+        monitoring_password: 12345678
 
         nano ./environments/stage/group_vars/db/secrets.yml
 
         mongodb_user_pass: mongo123
         mongodb_root_pass: mongo123
         mongodb_backup_pass: mongo123
-        mongodb_backup_bucket: backup
-        mongodb_backup_access_key: xxxxxxxxxxxxxxx
-        mongodb_backup_secret_key: xxxxxxxxxxxxxxx
+        monitoring_password: 12345678
+
+        nano ./environments/stage/group_vars/app/secrets.yml
+
+        monitoring_mongodb_pass: mongo123
+        monitoring_backup_bucket: backup_ls
+        monitoring_backup_access_key: GOOG2RWJDEUU7D3QBTEOYY6G
+        monitoring_backup_secret_key: /ZoZr7jawxvw6CFPQKiJbx6zvHcRdDtn/JFeMCxV
+        monitoring_password: 12345678
 
 1. Шифруем файлы
 
         ansible-vault encrypt ./environments/stage/group_vars/app/secrets.yml
         ansible-vault encrypt ./environments/stage/group_vars/db/secrets.yml
+        ansible-vault encrypt ./environments/stage/group_vars/monitoring/secrets.yml
 
 1. Перед запуском плейбуков необходимо установить зависимости для окружения
 
         ansible-galaxy install -r ./environments/stage/requirements.yml
 
-1. Запускаем плейбук для хостов db, он установит MongoDB и все необходимые компоненты. По умолчанию все плейбуки выполняются на stage окружении.
+1. Запускаем плейбук Ansible, он установит все необходимые компоненты
 
-        ansible-playbook ./playbooks/db.yml
-
-1. Запускаем плейбук для сервера с приложением, он установит все необходимые компоненты и создадут контейнер с клиентом. Клиент подключится к базе test и в коллекции notes создаст несколько записей.
-
-        ansible-playbook ./playbooks/app.yml
+        ansible-playbook ./playbooks/main.yml
 
 1. По ip адреу который выдал Terraform на втором шаге можно будет подключиться к базе
 
         mongo mongodb://root:mongo123@x.x.x.x:27001
         mongosh x.x.x.x:27001 -u root -p mongo123
         mongodb://root:mongo123@x.x.x.x:27001
+
+1. По ip адреу который выдал Terraform на втором шаге можно будет подключиться к панели мониторинга
+
+        https://x.x.x.x
 
 ## Примечание
 С Ansible нельзя работать из под Windows, поэтому вся работа с проектом происходит в WSL. На WSL необходимо установить Ubuntu, установить Python и Ansible. Для тестов необходимо установить PowerShell последней версии из Microsoft Store

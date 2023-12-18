@@ -1,0 +1,17 @@
+---
+- block:
+  - name: Ждем 60 секунд чтобы сервис успел запуститься
+    ansible.builtin.pause:
+      seconds: 60
+    when: docker_compose_result is defined and docker_compose_result.changed
+
+  - name: Задаем пароль для администратора
+    community.docker.docker_container_exec:
+      container: pmm-server
+      command: "change-admin-password {{ monitoring_password }}"
+    register: docker_exec_result
+    failed_when: docker_exec_result.rc != 0
+
+  rescue:
+    - fail:
+        msg: "Ошибка при установке пароля pmm: {{ docker_exec_result.stdout_lines[-1] }}"

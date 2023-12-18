@@ -1,0 +1,62 @@
+---
+- name: Настраиваем подключение pbm к MongoDB
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^PBM_MONGODB_URI='
+    line: "PBM_MONGODB_URI=\"mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip | zip_longest([], fillvalue=':' + monitoring_mongodb_port | string) | map('join') | join(',') }}/?authSource=admin&replSetName={{ monitoring_mongodb_rs_name }}\""
+  no_log: true
+
+- name: Считываем текущие настройки pbm config
+  ansible.builtin.command:
+    cmd: pbm config --mongodb-uri mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip | zip_longest([], fillvalue=':' + monitoring_mongodb_port | string) | map('join') | join(',') }}/?authSource=admin&replSetName={{ monitoring_mongodb_rs_name }}
+  changed_when: false
+  no_log: true
+  register: pbm_config_result
+  when: monitoring_percona_force_config != true and not percona_install_result.changed
+
+- name: Сравниваем результат с файлом шаблона
+  ansible.utils.fact_diff:
+    before: "{{ pbm_config_result.stdout | from_yaml | to_nice_yaml }}"
+    after: "{{ lookup('template', 'pbm_config.yaml.j2') | from_yaml | to_nice_yaml }}"
+    plugin:
+      vars:
+         skip_lines:
+          - '.*access-key-id.*'
+          - '.*secret-access-key.*'
+  register: check_result
+  when: monitoring_percona_force_config != true and not percona_install_result.changed
+
+- block:
+  - name: Копируем настройки pbm во временную папку
+    ansible.builtin.template:
+      src: pbm_config.yaml.j2
+      dest: /tmp/pbm_config.yaml
+    changed_when: false
+    no_log: true
+    when: percona_install_result.changed or check_result.changed or monitoring_percona_force_config == true
+
+  - name: Обновляем настройки pbm config
+    ansible.builtin.command:
+      cmd: pbm config --file /tmp/pbm_config.yaml --mongodb-uri mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip | zip_longest([], fillvalue=':' + monitoring_mongodb_port | string) | map('join') | join(',') }}/?authSource=admin&replSetName={{ monitoring_mongodb_rs_name }}
+    no_log: true
+    when: percona_install_result.changed or check_result.changed or monitoring_percona_force_config == true
+
+  - name: Удаляем файл с настройками pbm из временной папки
+    ansible.builtin.file:
+      path: /tmp/pbm_config.yaml
+      state: absent
+    changed_when: false
+    when: percona_install_result.changed or check_result.changed or monitoring_percona_force_config == true
+  
+  rescue:
+    - name: Удаляем файл с настройками pbm из временной папки
+      ansible.builtin.file:
+        path: /tmp/pbm_config.yaml
+        state: absent
+      changed_when: false
+      failed_when: true
+
+- name: Проверяем pbm status
+  ansible.builtin.command:
+    cmd: "pbm status"
+  changed_when: false

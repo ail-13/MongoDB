@@ -1,0 +1,14 @@
+---
+- block:
+  - name: Регистрируемся на сервере PMM
+    ansible.builtin.command:
+      cmd: pmm-admin config --server-insecure-tls --server-url=https://admin:{{ monitoring_password }}@{{ monitoring_ip }}:443
+    register: pbm_config_result
+
+  rescue:
+    - fail:
+        msg: "Ошибка при регистрации на сервере PMM: {{ pbm_config_result }}"
+      when: pbm_config_result is not defined or pbm_config_result.stdout_lines is not defined
+    - fail:
+        msg: "Ошибка при регистрации на сервере PMM: {{ pbm_config_result.stdout_lines[-1] }}"
+      when: pbm_config_result is defined and pbm_config_result.stdout_lines is defined and not (pbm_config_result.stdout_lines | default([]) | regex_search('Node with name .* already exists.'))

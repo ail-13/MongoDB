@@ -1,0 +1,11 @@
+galaxy_info:
+  role_name: monitoring
+  author: ail-13
+  namespace: infra
+  description: Устанавливает и настраивает Percona Monitoring and Management в контейнере Docker. Также устанавливает и настраивает Percona Backup for MongoDB.
+
+  license: All Rights Reserved
+
+  min_ansible_version: "2.10"
+
+dependencies: []

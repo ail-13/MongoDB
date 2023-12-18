@@ -1,0 +1,14 @@
+---
+- name: Выводим информацию о текущем окружении
+  debug:
+    msg: "Этот хост является {{ env }}"
+
+- name: Устанавливаем клиент Percona Monitoring and Management
+  become: true
+  block:
+   - include_tasks: install_pmm_client.yml
+
+- name: Настраиваем клиент Percona Monitoring and Management
+  become: true
+  block:
+   - include_tasks: config_pmm_client.yml

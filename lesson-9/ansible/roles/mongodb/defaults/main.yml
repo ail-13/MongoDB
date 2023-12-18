@@ -8,5 +8,4 @@ mongodb_root_name: root
 mongodb_user_name: user
 mongodb_backup_name: backup
 mongodb_percona_version: latest
-mongodb_backup_prefix: test
 env: local

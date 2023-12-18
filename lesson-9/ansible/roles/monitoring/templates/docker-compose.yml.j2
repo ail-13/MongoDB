@@ -1,0 +1,19 @@
+version: "3.3"
+
+services:
+  pmm-server:
+    image: percona/pmm-server:2
+    container_name: pmm-server
+    restart: always
+    ports:
+      - "443:443"
+    volumes:
+      - pmm-data:/srv
+
+volumes:
+  pmm-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: {{ monitoring_data_path }}

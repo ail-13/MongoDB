@@ -8,12 +8,12 @@ storage:
   provider: gcs
   region: eu
   forcePathStyle: true
-  bucket: {{ mongodb_backup_bucket }}
-  prefix: pbm/{{ mongodb_backup_prefix }}
+  bucket: {{ monitoring_backup_bucket }}
+  prefix: pbm/{{ monitoring_backup_prefix }}
   endpointUrl: https://storage.googleapis.com
   credentials:
-    access-key-id: {{ mongodb_backup_access_key }}
-    secret-access-key: {{ mongodb_backup_secret_key }}
+    access-key-id: {{ monitoring_backup_access_key }}
+    secret-access-key: {{ monitoring_backup_secret_key }}
   maxUploadParts: 10000
   storageClass: STANDARD
   insecureSkipTLSVerify: false

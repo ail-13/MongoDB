@@ -1,5 +1,0 @@
----
-- name: AppInstall
-  hosts: app
-  roles:
-    - role: app

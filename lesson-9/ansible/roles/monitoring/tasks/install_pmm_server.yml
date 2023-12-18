@@ -1,0 +1,32 @@
+---
+- name: Установка дополнительных пакетов
+  ansible.builtin.apt:
+    update_cache: true
+    state: present
+    name:
+      - curl
+      - gnupg
+      - mc
+
+- name: Создаем каталог pmm-server
+  ansible.builtin.file:
+    path: "/home/{{ vm_username }}/pmm-server"
+    state: directory
+    group: "{{ vm_username }}"
+    owner: "{{ vm_username }}"
+    mode: "755"
+
+- name: Переносим docker-compose.yml на сервер
+  ansible.builtin.template:
+    src: "docker-compose.yml.j2"
+    dest: "/home/{{ vm_username }}/pmm-server/docker-compose.yml"
+    group: "{{ vm_username }}"
+    owner: "{{ vm_username }}"
+    mode: "644"
+
+- name: Запуск Docker Compose
+  community.general.docker_compose:
+    project_src: "/home/{{ vm_username }}/pmm-server"
+    state: present
+    build: true
+  register: docker_compose_result

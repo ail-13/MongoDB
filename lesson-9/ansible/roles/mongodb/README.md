@@ -19,7 +19,6 @@
     mongodb_user_name: user
     mongodb_backup_name: backup
     mongodb_percona_version: latest
-    mongodb_backup_prefix: test
 
 В параметре `vm_disk` содержится название диска который убедт монтироваться для хранения файлов базы данных
 
@@ -39,10 +38,6 @@
 
 В параметре `mongodb_percona_version` указывается версия Percona Backup for MongoDB
 
-В параметре `mongodb_backup_prefix` указывается префикс в бакете для бекапов
-
-В параметрах `mongodb_backup_bucket`, `mongodb_backup_access_key` и `mongodb_backup_secret_key` указываются данные для подключения к S3 бакету в котором будут хранится бекапы
-
 ## Example Playbook
 
       hosts: db
@@ -57,9 +52,6 @@
             mongodb_backup_pass: mongo123
             mongodb_data_path: /db
             mongodb_port: 27001
-            mongodb_backup_bucket: backup
-            mongodb_backup_access_key: xxxxxxxxxxxxxxx
-            mongodb_backup_secret_key: xxxxxxxxxxxxxxx
 
 ## License
 

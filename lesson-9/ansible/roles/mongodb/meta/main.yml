@@ -2,7 +2,7 @@ galaxy_info:
   role_name: mongodb
   author: ail-13
   namespace: infra
-  description: Устанавливает Docker на сервер и запускает MongoDB в контейнере
+  description: Устанавливает на сервер MongoDB и Percona Backup for MongoDB клиент
 
   license: All Rights Reserved
 

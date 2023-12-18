@@ -5,6 +5,8 @@
     state: present
     name:
       - curl
+      - gnupg
+      - mc
 
 - name: Добавляем ключ Percona
   ansible.builtin.apt_key:
@@ -15,14 +17,14 @@
 - name: Добавление репозитория Percona
   ansible.builtin.apt_repository:
     update_cache: true
-    repo: deb http://repo.percona.com/pbm/apt {{ ansible_distribution_release }} main
+    repo: deb https://repo.percona.com/pmm2-client/apt/ {{ ansible_distribution_release }} main
     state: present
-    filename: percona-pbm-release
+    filename: percona-pmm2-client-release
 
-- name: Установка Percona
+- name: Установка Percona Monitoring and Management Client
   ansible.builtin.apt:
     update_cache: true
     state: present
     name:
-      - percona-backup-mongodb
+      - pmm2-client
   register: percona_install_result

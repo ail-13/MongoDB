@@ -1,0 +1,27 @@
+---
+- name: Настраиваем сервера под MongoDB
+  hosts: db
+  roles:
+    - role: mongodb
+
+- name: Настраиваем сервера под приложение
+  hosts: app
+  roles:
+    - role: app
+
+- name: Настраиваем сервер мониторинга
+  hosts: monitoring
+  roles:
+    - role: monitoring
+  # vars:
+  #   monitoring_percona_force_config: true
+    
+- name: Подключаем сервера с MongoDB к мониторингу
+  hosts: db
+  roles:
+    - role: pmm_client
+
+- name: Подключаем сервера с приложением к мониторингу
+  hosts: app
+  roles:
+    - role: pmm_client

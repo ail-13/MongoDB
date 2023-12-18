@@ -1,4 +1,5 @@
 ---
+app_rs_name: rs0
 app_db_port: 27017
 app_path: app/
 env: local
