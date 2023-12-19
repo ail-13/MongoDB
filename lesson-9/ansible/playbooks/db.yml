@@ -1,0 +1,5 @@
+---
+- name: Настраиваем сервера под MongoDB
+  hosts: db
+  roles:
+    - role: mongodb

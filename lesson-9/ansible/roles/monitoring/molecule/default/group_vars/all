@@ -2,7 +2,7 @@ vm_username: vagrant
 vm_disk: sdc
 mongodb_root_pass: mongo123
 mongodb_user_pass: mongo123
-mongodb_backup_pass: mongo123
+mongodb_percona_pass: mongo123
 mongodb_backup_bucket: backup
 mongodb_backup_access_key: xxxxxxxxxxxxxxx
 mongodb_backup_secret_key: xxxxxxxxxxxxxxx

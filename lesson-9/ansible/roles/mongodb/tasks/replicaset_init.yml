@@ -17,8 +17,8 @@
         - name: "{{ mongodb_root_name }}"
           pass: "{{ mongodb_root_pass }}"
 
-        - name: "{{ mongodb_backup_name }}"
-          pass: "{{ mongodb_backup_pass }}"
+        - name: "{{ mongodb_percona_name }}"
+          pass: "{{ mongodb_percona_pass }}"
 
         - name: "{{ mongodb_user_name }}"
           pass: "{{ mongodb_user_pass }}"
@@ -35,8 +35,8 @@
         - name: "{{ mongodb_root_name }}"
           pass: "{{ mongodb_root_pass }}"
 
-        - name: "{{ mongodb_backup_name }}"
-          pass: "{{ mongodb_backup_pass }}"
+        - name: "{{ mongodb_percona_name }}"
+          pass: "{{ mongodb_percona_pass }}"
       no_log: true
 
   rescue:
@@ -93,7 +93,7 @@
         interval: 10
       when: ansible_hostname == ansible_play_hosts[0]
 
-    - name: Создаем роль для резервного копирования
+    - name: Создаем роль pbmAnyAction для резервного копирования
       community.mongodb.mongodb_role:
         login_port: "{{ mongodb_port }}"
         database: admin
@@ -101,8 +101,34 @@
         replica_set: "{{ mongodb_rs_name }}"
         name: pbmAnyAction
         privileges:
-          - actions: ["anyAction"]
-            resource: { "anyResource": true }
+          - resource: { anyResource: true }
+            actions: [
+              "anyAction"
+            ]
+
+    - name: Создаем роль explainRole для сбора статистики
+      community.mongodb.mongodb_role:
+        login_port: "{{ mongodb_port }}"
+        database: admin
+        state: present
+        replica_set: "{{ mongodb_rs_name }}"
+        name: explainRole
+        privileges:
+          - resource: { db: "", collection: "" }
+            actions: [
+              "listIndexes",
+              "listCollections",
+              "dbStats",
+              "dbHash",
+              "collStats",
+              "find"
+            ]
+          - resource: { db: "", collection: "system.profile" }
+            actions: [
+              "collStats",
+              "dbStats",
+              "indexStats"
+            ]
 
     - name: Создаем пользователей MongoDB
       community.mongodb.mongodb_user:
@@ -121,14 +147,18 @@
           roles:
             - root
 
-        - name: "{{ mongodb_backup_name }}"
-          pass: "{{ mongodb_backup_pass }}"
-          roles:
-            - readWrite
-            - backup
-            - clusterMonitor
-            - restore
-            - pbmAnyAction
+        - name: "{{ mongodb_percona_name }}"
+          pass: "{{ mongodb_percona_pass }}"
+          roles: [
+            { db: "admin", role: "explainRole" },
+            { db: "admin", role: "clusterMonitor" },
+            { db: "local", role: "read" },
+            { db: "admin", role: "readWrite", collection: "" },
+            { db: "admin", role: "backup" },
+            { db: "admin", role: "clusterMonitor" },
+            { db: "admin", role: "restore" },
+            { db: "admin", role: "pbmAnyAction" }
+          ]
 
         - name: "{{ mongodb_user_name }}"
           pass: "{{ mongodb_user_pass }}"

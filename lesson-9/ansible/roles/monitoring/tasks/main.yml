@@ -31,12 +31,12 @@
   block:
    - include_tasks: config_pmm_server.yml
 
-- name: Устанавливаем сервер Percona Backup for MongoDB
-  become: true
-  block:
-    - include_tasks: install_pbm_server.yml
+# - name: Устанавливаем сервер Percona Backup for MongoDB
+#   become: true
+#   block:
+#     - include_tasks: install_pbm_server.yml
 
-- name: Настраиваем сервер Percona Backup for MongoDB
-  become: true
-  block:
-    - include_tasks: config_pbm_server.yml
+# - name: Настраиваем сервер Percona Backup for MongoDB
+#   become: true
+#   block:
+#     - include_tasks: config_pbm_server.yml

@@ -40,7 +40,7 @@
 
         mongodb_user_pass: mongo123
         mongodb_root_pass: mongo123
-        mongodb_backup_pass: mongo123
+        mongodb_percona_pass: mongo123
         monitoring_password: 12345678
 
         nano ./environments/stage/group_vars/app/secrets.yml
@@ -74,6 +74,16 @@
 1. По ip адреу который выдал Terraform на втором шаге можно будет подключиться к панели мониторинга
 
         https://x.x.x.x
+
+
+# Важно
+При установке Percona Monitoring and Management нельзя указать настройки для хранения бекапов в S3, поэтому после установки это необходимо сделать вручную в панели управления Percona Monitoring and Management
+
+    Backup -> Storage location -> Add storage location
+
+Также необходимо настроить автоматическое создание бекапов
+
+    Backup -> Scheduled backups -> Add scheduled backup
 
 ## Примечание
 С Ansible нельзя работать из под Windows, поэтому вся работа с проектом происходит в WSL. На WSL необходимо установить Ubuntu, установить Python и Ansible. Для тестов необходимо установить PowerShell последней версии из Microsoft Store

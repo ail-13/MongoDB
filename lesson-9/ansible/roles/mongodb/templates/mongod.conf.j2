@@ -32,7 +32,10 @@ security:
   # Включаем авторизацию
  authorization: enabled
 
-#operationProfiling:
+operationProfiling:
+  # Включаем профилирование медленных запросов длительностью более 300 мс
+  mode: slowOp
+  slowOpThresholdMs: 300
 
 replication:
   replSetName: {{ mongodb_rs_name}}

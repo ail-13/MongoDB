@@ -1,0 +1,5 @@
+---
+mongodb_port: 27017
+mongodb_rs_name: rs0
+mongodb_percona_name: percona
+env: local

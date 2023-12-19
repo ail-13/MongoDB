@@ -6,6 +6,6 @@ mongodb_keyfile: ~/.mongokey
 mongodb_rs_name: rs0
 mongodb_root_name: root
 mongodb_user_name: user
-mongodb_backup_name: backup
+mongodb_percona_name: percona
 mongodb_percona_version: latest
 env: local

@@ -17,7 +17,7 @@
     mongodb_rs_name: rs0
     mongodb_root_name: root
     mongodb_user_name: user
-    mongodb_backup_name: backup
+    mongodb_percona_name: percona
     mongodb_percona_version: latest
 
 В параметре `vm_disk` содержится название диска который убедт монтироваться для хранения файлов базы данных
@@ -26,7 +26,7 @@
 
 В параметре `mongodb_data_path` указывается путь к папке в которой будут хранится файлы базы данных. Папка не создается автоматически и должна существовать, иначе будет ошибка.
 
-В параметрах `mongodb_root_name`, `mongodb_root_pass`, `mongodb_user_name`, `mongodb_user_pass`, `mongodb_backup_name` и `mongodb_backup_pass` содержатся данные пользователей которые будут созданы при создании базы. Если база уже существует, то эти параметры игнорируются.
+В параметрах `mongodb_root_name`, `mongodb_root_pass`, `mongodb_user_name`, `mongodb_user_pass`, `mongodb_percona_name` и `mongodb_percona_pass` содержатся данные пользователей которые будут созданы при создании базы. Если база уже существует, то эти параметры игнорируются.
 
 В параметре `mongodb_version` содержится версия MongoDB которая будет запущена.
 
@@ -49,7 +49,7 @@
             vm_username: mongo_user
             mongodb_root_pass: mongo123
             mongodb_user_pass: mongo123
-            mongodb_backup_pass: mongo123
+            mongodb_percona_pass: mongo123
             mongodb_data_path: /db
             mongodb_port: 27001
 
