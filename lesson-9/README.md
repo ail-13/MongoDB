@@ -85,6 +85,10 @@
 
     Backup -> Scheduled backups -> Add scheduled backup
 
+При переустановке Percona Monitoring and Management из панели управления не будут доступны старые бекапы, их можно будет восстановить только вручную через командную строку
+
+    pbm restore <name>
+
 ## Примечание
 С Ansible нельзя работать из под Windows, поэтому вся работа с проектом происходит в WSL. На WSL необходимо установить Ubuntu, установить Python и Ansible. Для тестов необходимо установить PowerShell последней версии из Microsoft Store
 
@@ -118,7 +122,7 @@ https://console.cloud.google.com/iam-admin/serviceaccounts
 ## Примечание
 Чтобы запустить плейбук на prod окружении нужно указать его инвентори
 
-    ansible-playbook -i ./environments/prod/inventory.sh playbooks/app.yml
+    ansible-playbook -i ./environments/prod/inventory.sh playbooks/main.yml
 
 Список хостов окружения можно посмотреть через динамический инвентори
 

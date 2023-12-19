@@ -1,7 +1,7 @@
 pitr:
   enabled: false
   oplogSpanMin: 0
-  compression: s2
+  compression: zstd
 storage:
  type: s3
  s3:
@@ -9,7 +9,7 @@ storage:
   region: eu
   forcePathStyle: true
   bucket: {{ monitoring_backup_bucket }}
-  prefix: pbm/{{ monitoring_backup_prefix }}
+  prefix: cluster_{{ monitoring_mongodb_rs_name }}
   endpointUrl: https://storage.googleapis.com
   credentials:
     access-key-id: {{ monitoring_backup_access_key }}
@@ -18,4 +18,4 @@ storage:
   storageClass: STANDARD
   insecureSkipTLSVerify: false
 backup:
-  compression: s2
+  compression: zstd

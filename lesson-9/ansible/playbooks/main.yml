@@ -13,6 +13,7 @@
   hosts: monitoring
   roles:
     - role: monitoring
+  # Обновить конфигурацию для мониторинга Percona и pbm сервер
   # vars:
   #   monitoring_percona_force_config: true
     

@@ -44,7 +44,7 @@
       ansible.builtin.service:
         name: mongod
         state: stopped
-    
+
     # Для настройки MongoDB необходдимо отключить авторизацию,
     # поэтому закрываем порт MongoDB для всех кроме узлов реплики
     - name: Открываем порт MongoDB только для IP адресов узлов реплики
@@ -64,7 +64,7 @@
         destination_port: "{{ mongodb_port }}"
         jump: DROP
         state: present
-    
+
     - name: Переносим настройки MongoDB для инициализации replicaset
       ansible.builtin.template:
         src: mongod_init.conf.j2
@@ -102,9 +102,7 @@
         name: pbmAnyAction
         privileges:
           - resource: { anyResource: true }
-            actions: [
-              "anyAction"
-            ]
+            actions: ["anyAction"]
 
     - name: Создаем роль explainRole для сбора статистики
       community.mongodb.mongodb_role:
@@ -115,20 +113,17 @@
         name: explainRole
         privileges:
           - resource: { db: "", collection: "" }
-            actions: [
-              "listIndexes",
-              "listCollections",
-              "dbStats",
-              "dbHash",
-              "collStats",
-              "find"
-            ]
+            actions:
+              [
+                "listIndexes",
+                "listCollections",
+                "dbStats",
+                "dbHash",
+                "collStats",
+                "find",
+              ]
           - resource: { db: "", collection: "system.profile" }
-            actions: [
-              "collStats",
-              "dbStats",
-              "indexStats"
-            ]
+            actions: ["collStats", "dbStats", "indexStats"]
 
     - name: Создаем пользователей MongoDB
       community.mongodb.mongodb_user:
@@ -149,16 +144,17 @@
 
         - name: "{{ mongodb_percona_name }}"
           pass: "{{ mongodb_percona_pass }}"
-          roles: [
-            { db: "admin", role: "explainRole" },
-            { db: "admin", role: "clusterMonitor" },
-            { db: "local", role: "read" },
-            { db: "admin", role: "readWrite", collection: "" },
-            { db: "admin", role: "backup" },
-            { db: "admin", role: "clusterMonitor" },
-            { db: "admin", role: "restore" },
-            { db: "admin", role: "pbmAnyAction" }
-          ]
+          roles:
+            [
+              { db: "admin", role: "explainRole" },
+              { db: "admin", role: "clusterMonitor" },
+              { db: "local", role: "read" },
+              { db: "admin", role: "readWrite" },
+              { db: "admin", role: "backup" },
+              { db: "admin", role: "clusterMonitor" },
+              { db: "admin", role: "restore" },
+              { db: "admin", role: "pbmAnyAction" },
+            ]
 
         - name: "{{ mongodb_user_name }}"
           pass: "{{ mongodb_user_pass }}"

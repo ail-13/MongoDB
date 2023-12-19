@@ -16,8 +16,8 @@
 - block:
   - name: Регистрируем сервис MongoDB на сервере PMM
     ansible.builtin.command:
-      cmd: pmm-admin add mongodb --username={{ mongodb_percona_name }} --password={{ mongodb_percona_pass }} --replication-set {{ mongodb_rs_name }} --cluster cluster_{{ mongodb_rs_name }} mongodb({{ ansible_hostname }}) 127.0.0.1:{{ mongodb_port }}
-    when: mongodb_percona_name is defined
+      cmd: pmm-admin add mongodb --environment={{ env }} --username={{ mongodb_percona_name }} --password={{ mongodb_percona_pass }} --replication-set={{ mongodb_rs_name }} --cluster=cluster_{{ mongodb_rs_name }} {{ ansible_hostname }}-mongodb 127.0.0.1:{{ mongodb_port }}
+    when: mongodb_percona_pass is defined
     register: mongo_config_result
 
   rescue:

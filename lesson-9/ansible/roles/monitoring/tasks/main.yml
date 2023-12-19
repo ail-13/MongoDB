@@ -19,24 +19,24 @@
 - name: Монтируем диск под хранение данных мониторинга
   become: true
   block:
-   - include_tasks: mount_disk.yml
+    - include_tasks: mount_disk.yml
 
 - name: Устанавливаем сервер Percona Monitoring and Management
   become: true
   block:
-   - include_tasks: install_pmm_server.yml
+    - include_tasks: install_pmm_server.yml
 
 - name: Настраиваем сервер Percona Monitoring and Management
   become: true
   block:
-   - include_tasks: config_pmm_server.yml
+    - include_tasks: config_pmm_server.yml
 
-# - name: Устанавливаем сервер Percona Backup for MongoDB
-#   become: true
-#   block:
-#     - include_tasks: install_pbm_server.yml
+- name: Устанавливаем сервер Percona Backup for MongoDB
+  become: true
+  block:
+    - include_tasks: install_pbm_server.yml
 
-# - name: Настраиваем сервер Percona Backup for MongoDB
-#   become: true
-#   block:
-#     - include_tasks: config_pbm_server.yml
+- name: Настраиваем сервер Percona Backup for MongoDB
+  become: true
+  block:
+    - include_tasks: config_pbm_server.yml
