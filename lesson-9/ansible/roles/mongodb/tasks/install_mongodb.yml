@@ -4,15 +4,13 @@
     update_cache: true
     state: present
     name:
-      - curl
-      - gnupg
-      - mc
       - python3-pip
 
 - name: Установить pymongo
   ansible.builtin.pip:
     name: pymongo
     state: present
+    executable: pip3
 
 - name: Добавляем ключ MongoDB
   ansible.builtin.apt_key:

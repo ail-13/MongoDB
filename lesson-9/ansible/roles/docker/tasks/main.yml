@@ -8,8 +8,6 @@
         state: present
         name:
           - ca-certificates
-          - curl
-          - gnupg
 
     - name: Добавляем ключ Docker
       ansible.builtin.apt_key:

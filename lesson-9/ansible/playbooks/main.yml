@@ -1,4 +1,10 @@
 ---
+- name: Устанавливаем необходимые пакеты
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: preconfig
+
 - name: Настраиваем сервера под MongoDB
   hosts: db
   roles:
@@ -6,6 +12,7 @@
 
 - name: Настраиваем сервера под приложение
   hosts: app
+  gather_facts: false
   roles:
     - role: app
 
@@ -13,9 +20,6 @@
   hosts: monitoring
   roles:
     - role: monitoring
-  # Обновить конфигурацию для мониторинга Percona и pbm сервер
-  # vars:
-  #   monitoring_percona_force_config: true
     
 - name: Подключаем сервера с MongoDB к мониторингу
   hosts: db

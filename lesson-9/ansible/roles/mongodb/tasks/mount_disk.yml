@@ -1,4 +1,11 @@
 ---
+- name: Установка дополнительных пакетов
+  ansible.builtin.apt:
+    update_cache: true
+    state: present
+    name:
+      - xfsprogs
+
 - name: Создаем точку монтирования
   ansible.builtin.file:
     path: "{{ mongodb_data_path }}"

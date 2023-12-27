@@ -1,13 +1,4 @@
 ---
-- name: Установка дополнительных пакетов
-  ansible.builtin.apt:
-    update_cache: true
-    state: present
-    name:
-      - curl
-      - gnupg
-      - mc
-
 - name: Создаем каталог pmm-server
   ansible.builtin.file:
     path: "/home/{{ vm_username }}/pmm-server"

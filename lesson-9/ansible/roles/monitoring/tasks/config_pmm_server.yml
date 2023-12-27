@@ -1,16 +1,14 @@
 ---
 - block:
-  - name: Ждем 60 секунд чтобы сервис успел запуститься
-    ansible.builtin.pause:
-      seconds: 60
-    when: docker_compose_result is defined and docker_compose_result.changed
-
   - name: Задаем пароль для администратора
     community.docker.docker_container_exec:
       container: pmm-server
       command: "change-admin-password {{ monitoring_password }}"
     register: docker_exec_result
-    when: docker_compose_result is defined and docker_compose_result.changed or monitoring_percona_force_config == true
+    until: docker_exec_result.rc == 0
+    retries: 30
+    delay: 5
+    when: docker_compose_result is defined and docker_compose_result.changed or monitoring_percona_force_config == true or monitoring_percona_force_config == 'true'
     failed_when: docker_exec_result.rc != 0
 
   rescue:
