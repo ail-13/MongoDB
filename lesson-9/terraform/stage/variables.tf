@@ -22,13 +22,16 @@ variable "username" {
   description = "Имя пользователя для подключения"
 }
 variable "private_key_path" {
+  type        = string
   description = "Путь к приватному ssh-ключу"
 }
 variable "app_count" {
+  type        = number
   description = "Количество серверов с приложением"
   default     = 1
 }
 variable "db_count" {
+  type        = number
   description = "Количество серверов с базой данных"
   default     = 3
 }
@@ -38,10 +41,12 @@ variable "mongodb_port" {
   default     = 27017
 }
 variable "mongodb_source_ranges" {
+  type        = list(string)
   description = "Фильтр внешних ip адресов для подключения к MongoDB"
   default     = []
 }
 variable "monitoring_source_ranges" {
+  type        = list(string)
   description = "Фильтр ip адресов для подключения к мониторингу"
   default     = ["0.0.0.0/0"]
 }
