@@ -1,29 +1,49 @@
 ---
-- block:
-  - name: Регистрируемся на сервере PMM
-    ansible.builtin.command:
-      cmd: pmm-admin config --server-insecure-tls --server-url=https://admin:{{ monitoring_password }}@{{ monitoring_ip }}:443
-    register: pmm_config_result
+- name: Регистрируемся на сервере PMM
+  block:
+    - name: Пробуем зарегистрироваться на сервере PMM
+      ansible.builtin.command:
+        cmd: pmm-admin config --server-insecure-tls --server-url=https://admin:{{ pmm_client_monitoring_password }}@{{ pmm_client_monitoring_ip }}:443
+      register: pmm_config_result
+      changed_when: true
 
   rescue:
-    - fail:
+    - name: Ошибка
+      ansible.builtin.fail:
         msg: "Ошибка при регистрации на сервере PMM: {{ pmm_config_result }}"
       when: pmm_config_result is not defined or pmm_config_result.stdout_lines is not defined
-    - fail:
+    - name: Ошибка
+      ansible.builtin.fail:
         msg: "Ошибка при регистрации на сервере PMM: {{ pmm_config_result.stdout_lines[-1] }}"
-      when: pmm_config_result is defined and pmm_config_result.stdout_lines is defined and not (pmm_config_result.stdout_lines | default([]) | regex_search('Node with name .* already exists.'))
+      when:
+        - pmm_config_result is defined
+        - pmm_config_result.stdout_lines is defined
+        - not (pmm_config_result.stdout_lines | default([]) | regex_search('Node with name .* already exists.'))
 
-- block:
-  - name: Регистрируем сервис MongoDB на сервере PMM
-    ansible.builtin.command:
-      cmd: pmm-admin add mongodb --environment={{ env }} --username={{ mongodb_percona_name }} --password={{ mongodb_percona_pass }} --replication-set={{ mongodb_rs_name }} --cluster=cluster_{{ mongodb_rs_name }} {{ ansible_hostname }}-mongodb 127.0.0.1:{{ mongodb_port }}
-    when: mongodb_percona_pass is defined
-    register: mongo_config_result
+- name: Регистрируем сервис MongoDB на сервере PMM
+  block:
+    - name: Пробуем зарегистрировать сервис MongoDB на сервере PMM
+      ansible.builtin.command:
+        cmd: >
+          pmm-admin add mongodb
+          --environment={{ env }}
+          --username={{ pmm_client_mongodb_percona_name }}
+          --password={{ pmm_client_mongodb_percona_pass }}
+          --replication-set={{ pmm_client_mongodb_rs_name }}
+          --cluster=cluster_{{ pmm_client_mongodb_rs_name }} {{ ansible_hostname }}-mongodb 127.0.0.1:{{ pmm_client_mongodb_port }}
+      when: pmm_client_mongodb_percona_pass is defined
+      register: mongo_config_result
+      changed_when: true
 
   rescue:
-    - fail:
+    - name: Ошибка
+      ansible.builtin.fail:
         msg: "Ошибка при регистрации сервиса MongoDB на сервере PMM: {{ mongo_config_result }}"
       when: mongo_config_result is not defined or mongo_config_result.stdout_lines is not defined
-    - fail:
+    - name: Ошибка
+      ansible.builtin.fail:
         msg: "Ошибка при регистрации на сервере PMM: {{ mongo_config_result.stdout_lines[-1] }}"
-      when: mongo_config_result is defined and mongo_config_result.stdout_lines is defined and not (mongo_config_result.stdout_lines | default([]) | regex_search('Service with name .* already exists.'))
+      when:
+        - mongo_config_result is defined
+        - mongo_config_result.stdout_lines is defined
+        - not (mongo_config_result.stdout_lines | default([]) | regex_search('Service with name .* already exists.'))

@@ -23,4 +23,4 @@
     - name: Ошибка установки dive
       ansible.builtin.fail:
         msg: Не удалось установить dive
-      ignore_errors: true
+      failed_when: false

@@ -28,7 +28,7 @@
     opts: defaults
     dump: 0
     passno: 2
-  
+
 - name: Меняем права доступа к каталогу MongoDB
   ansible.builtin.file:
     path: "{{ mongodb_data_path }}"

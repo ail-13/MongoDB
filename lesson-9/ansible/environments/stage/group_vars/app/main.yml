@@ -1,6 +1,7 @@
 app_db_host: "{{ mongodb_ip }}"
 app_db_port: 27001
 app_path: "../../app/"
+pmm_client_monitoring_ip: "{{ monitoring_ip }}"
 
 # Добавляем секреты
 include_vars: secrets.yml

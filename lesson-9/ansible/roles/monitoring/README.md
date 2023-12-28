@@ -17,6 +17,8 @@
     monitoring_mongodb_port: 27017
     monitoring_mongodb_rs_name: rs0
 
+В параметре `monitoring_mongodb_ip` указывается массив IP адресов серверов с MongoDB.
+
 В параметре `monitoring_percona_version` указывается версия Percona Monitoring and Management.
 
 В параметре `monitoring_percona_force_config` указывается необходимость принудительно перезаписи конфигурационных файлов.
@@ -47,6 +49,7 @@
             monitoring_backup_access_key: GOOG2RWJDEUU7D3QBTEOYY6G
             monitoring_backup_secret_key: /ZoZr7jawxvw6CFPQKiJbx6zvHcRdDtn/JFeMCxV
             monitoring_password: 12345678
+            monitoring_mongodb_ip: [xxx.xxx.xxx.xxx, xxx.xxx.xxx.xxx]
 
 ## License
 

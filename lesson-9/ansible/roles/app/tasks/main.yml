@@ -1,6 +1,6 @@
 ---
 - name: Выводим информацию о текущем окружении
-  debug:
+  ansible.builtin.debug:
     msg: "Этот хост является {{ env }}"
 
 - name: Docker

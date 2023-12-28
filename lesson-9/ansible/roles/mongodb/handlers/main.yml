@@ -3,3 +3,9 @@
   ansible.builtin.service:
     name: mongod
     state: restarted
+
+- name: Перезапускаем pbm-agent
+  become: true
+  ansible.builtin.service:
+    name: pbm-agent
+    state: restarted

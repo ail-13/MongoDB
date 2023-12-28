@@ -1,4 +1,5 @@
 monitoring_data_path: /monitoring_data
+monitoring_mongodb_ip: "{{ mongodb_ip }}"
 monitoring_mongodb_port: 27001
 
 # Добавляем секреты

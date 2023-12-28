@@ -10,19 +10,19 @@
 
 Значения по умолчанию хранятся в файле `defaults/main.yml`.
 
-    mongodb_port: 27017
-    mongodb_rs_name: rs0
-    mongodb_percona_name: percona
+    pmm_client_mongodb_port: 27017
+    pmm_client_mongodb_rs_name: rs0
+    pmm_client_mongodb_percona_name: percona
 
-В параметре `mongodb_port` указывается порт который будет проброшен из контейнера с MongoDB наружу в хостовоую систему. Внутри контейнера MongoDB работает на 27017 порту
+В параметре `pmm_client_mongodb_port` указывается порт который будет проброшен из контейнера с MongoDB наружу в хостовоую систему. Внутри контейнера MongoDB работает на 27017 порту
 
-В параметре `mongodb_rs_name` указывается название replica set
+В параметре `pmm_client_mongodb_rs_name` указывается название replica set
 
-В параметре `monitoring_ip` указывается IP адрес сервера мониторинга.
+В параметре `pmm_client_monitoring_ip` указывается IP адрес сервера мониторинга.
 
-В параметре `monitoring_password` указывается пароль для подключения к серверу мониторинга
+В параметре `pmm_client_monitoring_password` указывается пароль для подключения к серверу мониторинга
 
-В параметре `monitoring_percona_pass` указывается пароль для подключения к базе данных
+В параметре `pmm_client_monitoring_percona_pass` указывается пароль для подключения к базе данных
 
 ## Example Playbook
 
@@ -31,9 +31,9 @@
       roles:
         - role: pmm_client
           vars:
-            monitoring_ip: xxx.xxx.xxx.xxx
-            monitoring_password: xxxxxxxx
-            mongodb_percona_pass: mongo123
+            pmm_client_monitoring_ip: xxx.xxx.xxx.xxx
+            pmm_client_monitoring_password: xxxxxxxx
+            pmm_client_mongodb_percona_pass: mongo123
 
 ## License
 

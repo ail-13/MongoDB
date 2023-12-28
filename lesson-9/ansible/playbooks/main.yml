@@ -7,26 +7,40 @@
 
 - name: Настраиваем сервера под MongoDB
   hosts: db
+  gather_facts: true
+  gather_subset:
+    - min
   roles:
     - role: mongodb
 
 - name: Настраиваем сервера под приложение
   hosts: app
-  gather_facts: false
+  gather_facts: true
+  gather_subset:
+    - min
   roles:
     - role: app
 
 - name: Настраиваем сервер мониторинга
   hosts: monitoring
+  gather_facts: true
+  gather_subset:
+    - min
   roles:
     - role: monitoring
-    
+
 - name: Подключаем сервера с MongoDB к мониторингу
   hosts: db
+  gather_facts: true
+  gather_subset:
+    - min
   roles:
     - role: pmm_client
 
 - name: Подключаем сервера с приложением к мониторингу
   hosts: app
+  gather_facts: true
+  gather_subset:
+    - min
   roles:
     - role: pmm_client

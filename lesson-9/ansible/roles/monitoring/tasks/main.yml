@@ -1,42 +1,36 @@
 ---
-- name: Выводим информацию о текущем окружении
-  debug:
-    msg: "Этот хост является {{ env }}"
-
-- name: Docker
-  block:
-    - name: Устанавливаем Docker
-      ansible.builtin.include_role:
-        name: docker
-      vars:
-        docker_user: "{{ vm_username }}"
-
-    - name: Устанавливаем dive
-      ansible.builtin.include_role:
-        name: dive
-      when: env in ["stage", "dev"]
+- name: Устанавливаем Docker
+  ansible.builtin.include_role:
+    name: docker
+  vars:
+    docker_user: "{{ vm_username }}"
 
 - name: Монтируем диск под хранение данных мониторинга
   become: true
   block:
-    - include_tasks: mount_disk.yml
+    - name: Run mount_disk.yml
+      ansible.builtin.include_tasks: mount_disk.yml
 
 - name: Устанавливаем сервер Percona Monitoring and Management
   become: true
   block:
-    - include_tasks: install_pmm_server.yml
+    - name: Run install_pmm_server.yml
+      ansible.builtin.include_tasks: install_pmm_server.yml
 
 - name: Настраиваем сервер Percona Monitoring and Management
   become: true
   block:
-    - include_tasks: config_pmm_server.yml
+    - name: Run config_pmm_server.yml
+      ansible.builtin.include_tasks: config_pmm_server.yml
 
 - name: Устанавливаем сервер Percona Backup for MongoDB
   become: true
   block:
-    - include_tasks: install_pbm_server.yml
+    - name: Run install_pbm_server.yml
+      ansible.builtin.include_tasks: install_pbm_server.yml
 
 - name: Настраиваем сервер Percona Backup for MongoDB
   become: true
   block:
-    - include_tasks: config_pbm_server.yml
+    - name: Run config_pbm_server.yml
+      ansible.builtin.include_tasks: config_pbm_server.yml

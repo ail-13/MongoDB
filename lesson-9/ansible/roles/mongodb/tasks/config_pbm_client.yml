@@ -4,14 +4,7 @@
     content: 'PBM_MONGODB_URI="mongodb://{{ mongodb_percona_name }}:{{ mongodb_percona_pass }}@localhost:{{ mongodb_port }}/?authSource=admin"'
     dest: /etc/default/pbm-agent
   no_log: true
-  register: pbm_agent_config_result
-
-- name: Перезапускаем pbm-agent
-  become: true
-  ansible.builtin.service:
-    name: pbm-agent
-    state: restarted
-  when: pbm_agent_config_result.changed
+  notify: Перезапускаем pbm-agent
 
 - name: Проверяем что pbm-agent запущен
   ansible.builtin.service:

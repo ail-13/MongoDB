@@ -1,5 +1,4 @@
 ---
-mongodb_port: 27017
-mongodb_rs_name: rs0
-mongodb_percona_name: percona
-env: local
+pmm_client_mongodb_port: 27017
+pmm_client_mongodb_rs_name: rs0
+pmm_client_mongodb_percona_name: percona

@@ -1,6 +1,6 @@
 ---
 - name: Проверяем что количество хостов нечетное
-  fail:
+  ansible.builtin.fail:
     msg: "{{ 'Должно быть больше одного хоста' if ansible_play_hosts | length == 1 else 'Количество хостов должно быть не четным' }}"
   when: ansible_play_hosts | length % 2 == 0 or ansible_play_hosts | length == 1
 
@@ -48,7 +48,7 @@
     # Для настройки MongoDB необходдимо отключить авторизацию,
     # поэтому закрываем порт MongoDB для всех кроме узлов реплики
     - name: Открываем порт MongoDB только для IP адресов узлов реплики
-      iptables:
+      ansible.builtin.iptables:
         chain: INPUT
         protocol: tcp
         destination_port: "{{ mongodb_port }}"
@@ -58,7 +58,7 @@
       loop: "{{ (ansible_play_hosts | map('extract', hostvars, ['ansible_host']) | list) + ['127.0.0.1'] }}"
 
     - name: Закрываем для всех порт MongoDB
-      iptables:
+      ansible.builtin.iptables:
         chain: INPUT
         protocol: tcp
         destination_port: "{{ mongodb_port }}"
@@ -71,7 +71,7 @@
         dest: /etc/mongod.conf
         owner: root
         group: root
-        mode: 0644
+        mode: '0644'
 
     - name: Запускаем MongoDB
       ansible.builtin.service:
@@ -167,7 +167,7 @@
         dest: /etc/mongod.conf
         owner: root
         group: root
-        mode: 0644
+        mode: '0644'
 
     - name: Перезапускаем MongoDB
       ansible.builtin.service:
@@ -175,7 +175,7 @@
         state: restarted
 
     - name: Удаляем временные правила брандмауэра
-      iptables:
+      ansible.builtin.iptables:
         chain: INPUT
         protocol: tcp
         destination_port: "{{ mongodb_port }}"
@@ -185,7 +185,7 @@
       loop: "{{ (ansible_play_hosts | map('extract', hostvars, ['ansible_host']) | list) + ['127.0.0.1'] }}"
 
     - name: Удаляем временные правила брандмауэра
-      iptables:
+      ansible.builtin.iptables:
         chain: INPUT
         protocol: tcp
         destination_port: "{{ mongodb_port }}"
