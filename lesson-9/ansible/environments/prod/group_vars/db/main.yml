@@ -1,5 +1,7 @@
 mongodb_data_path: /mongodb
 mongodb_port: 27001
+pmm_client_monitoring_ip: "{{ monitoring_ip }}"
+pmm_client_mongodb_port: 27001
 
 # Добавляем секреты
 include_vars: secrets.yml
