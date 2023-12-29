@@ -11,6 +11,12 @@
 1. Запуск плейбука Ansible который установит все необходимые компоненты
 
 ## Запуск
+1. Создаем backet в GCS через Terraform для хранения state
+
+        cd ./terraform/backet
+        terraform init
+        terraform apply
+
 1. Создаем файл конфигурации для Terraform `./terraform/stage/terraform.tfvars`. Количество серверов с базой данных `db_count` должно быть нечетным, так как MongoDB требует нечетное количество серверов для репликации
 
         project          = "GCP_project_name"
@@ -171,3 +177,8 @@ https://ansible-collections.github.io/community.mongodb/mongodb_replicaset.html
 Для ручного создания бекапа нужно выполнить команду
 
     pbm backup
+
+## Примечание
+Для принудительной разблокировки tfstate Terraform нужно выполнить команду
+
+    terraform force-unlock <lock_id>

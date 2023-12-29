@@ -10,10 +10,15 @@ terraform {
       version = "5.2.0"
     }
   }
+  backend "gcs" {
+    bucket      = "tfstate-backet-lesson-9"
+    prefix      = "stage/tfstate"
+    credentials = "./../credentials.json"
+  }
 }
 provider "google" {
   # ID проекта
-  credentials = file(var.credentials)
+  credentials = "./../credentials.json"
   project     = var.project
   # region  = var.region
 }

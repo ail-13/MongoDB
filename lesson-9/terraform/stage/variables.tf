@@ -2,11 +2,6 @@ variable "project" {
   type        = string
   description = "Project ID"
 }
-variable "credentials" {
-  type        = string
-  description = "Данные для подключения к GCP"
-  sensitive   = true
-}
 variable "project_name" {
   type        = string
   description = "Название сервиса"
