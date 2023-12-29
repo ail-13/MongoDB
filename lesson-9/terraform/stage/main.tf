@@ -12,7 +12,7 @@ terraform {
   }
   backend "gcs" {
     bucket      = "tfstate-backet-lesson-9"
-    prefix      = "stage/tfstate"
+    prefix      = "stage/state.infra"
     credentials = "./../credentials.json"
   }
 }
