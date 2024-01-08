@@ -16,10 +16,10 @@ output "inventory" {
         },
         {
           for instance in module.app.instances : instance.name => {
-            ansible_host = instance.ip
-            mongodb_ip   = module.db.instances[*].ip
+            ansible_host  = instance.ip
+            mongodb_ip    = module.db.instances[*].ip
             monitoring_ip = module.monitoring.instances[0].ip
-            vm_username  = var.username
+            vm_username   = var.username
           }
         },
         {

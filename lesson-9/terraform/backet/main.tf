@@ -16,8 +16,8 @@ provider "google" {
 }
 
 resource "google_storage_bucket" "terraform_state" {
-  name     = "tfstate-backet-lesson-9"
-  location = "EU"
+  name          = "tfstate-backet-lesson-9"
+  location      = "EU"
   force_destroy = false
   storage_class = "NEARLINE"
 
