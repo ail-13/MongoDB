@@ -1,0 +1,4 @@
+architecture: "replicaset"
+useStatefulSet: true
+podLabels:
+  app: mongo
