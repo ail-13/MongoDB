@@ -67,3 +67,10 @@ Kubernetes будем разворачивать в GKE с помощью Terraf
 Перед подключением к кластеру необходимо выполнить авторизацию в GCP
 
     gcloud auth login
+
+## Ссылки
+https://medium.com/google-cloud/gcp-terraform-to-deploy-private-gke-cluster-bebb225aa7be
+
+https://cloud.google.com/sdk/docs/install#deb
+
+https://helm.sh/docs/intro/install/
