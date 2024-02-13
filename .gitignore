@@ -32,3 +32,6 @@ __pycache__/
 
 # Игнорируем файлы с ключами
 keyfile
+
+# Игнорируем папку kubespray
+kubespray/
