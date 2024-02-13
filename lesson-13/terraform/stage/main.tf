@@ -21,7 +21,7 @@ provider "google" {
 # Кластер Kubernetes
 module "k8s" {
   source       = "./../modules/k8s"
-  name         = "${local.env}-${var.project_name}-k8s"
+  name         = var.project_name
   worker_count = var.worker_count
   env          = local.env
   zone         = var.zone

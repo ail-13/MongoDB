@@ -1,17 +1,17 @@
 resource "google_compute_network" "vpc" {
-  name                    = "${var.env}-${var.name}-network"
+  name                    = "${var.env}-${var.name}-k8s-network"
   auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "subnet" {
-  name          = "${var.env}-${var.name}-subnetwork"
+  name          = "${var.env}-${var.name}-k8s-subnetwork"
   region        = substr(var.zone, 0, length(var.zone) - 2)
   network       = google_compute_network.vpc.name
   ip_cidr_range = "10.0.0.0/24"
 }
 
 resource "google_container_cluster" "primary" {
-  name                     = "${var.env}-${var.name}"
+  name                     = "${var.env}-${var.name}-k8s"
   location                 = var.zone
   network                  = google_compute_network.vpc.name
   subnetwork               = google_compute_subnetwork.subnet.name
@@ -20,14 +20,9 @@ resource "google_container_cluster" "primary" {
   min_master_version       = "1.28.3-gke.1286000"
 
   release_channel {
-    channel = "REGULAR"
+    channel = "UNSPECIFIED"
   }
 
-  private_cluster_config {
-    enable_private_endpoint = false
-    enable_private_nodes    = false
-    master_ipv4_cidr_block  = "10.13.0.0/28"
-  }
   ip_allocation_policy {
     cluster_ipv4_cidr_block  = "10.11.0.0/21"
     services_ipv4_cidr_block = "10.12.0.0/21"
