@@ -62,6 +62,19 @@ Kubernetes будем разворачивать в GKE с помощью Terraf
 
         mongosh admin --host "mongo-mongodb-0.mongo-mongodb-headless.default.svc.cluster.local:27017,mongo-mongodb-1.mongo-mongodb-headless.default.svc.cluster.local:27017" --authenticationDatabase admin -u root -p $MONGODB_ROOT_PASSWORD
 
+## Установка Ingress
+Для доступа к MongoDB извне кластера необходимо установить Ingress. Для этого необходимо выполнить следующие шаги:
+
+1. Установка Ingress
+
+        helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+        helm repo update
+        helm install my-nginx-ingress ingress-nginx/ingress-nginx --set controller.publishService.enabled=true
+
+1. Проверяем что Ingress установлен
+
+        kubectl get services
+
 
 ## Примечание
 Перед подключением к кластеру необходимо выполнить авторизацию в GCP

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  # namespace: myns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      components: api
+  template:
+    metadata:
+      name: api
+      labels:
+        components: api
+    spec:
+      containers:
+        - name: api
+          image: antonlarichev/short-api
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              value: postgresql://myuser:mypassword@postgress-ip:5432/mydb
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "100m"
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:3000/api
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            failureThreshold: 1
+

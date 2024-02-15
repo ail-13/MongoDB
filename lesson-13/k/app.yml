@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  # namespace: myns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      components: app
+  template:
+    metadata:
+      name: app
+      labels:
+        components: app
+    spec:
+      containers:
+        - name: app
+          image: antonlarichev/short-app:v1.4
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
