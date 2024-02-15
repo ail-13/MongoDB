@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.api.deployment.name }}-deployment
+spec:
+  replicas: {{ .Values.api.deployment.replicas }}
+  selector:
+    matchLabels:
+      components: {{ .Values.api.deployment.label }}
+  template:
+    metadata:
+      name: {{ .Values.api.deployment.name }}
+      labels:
+        components: {{ .Values.api.deployment.label }}
+    spec:
+      containers:
+        - name: {{ .Values.api.deployment.name }}
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.api.port }}
+          resources:
+            limits:
+              memory: {{ .Values.api.resources.limits.memory }}
+              cpu: {{ .Values.api.resources.limits.cpu }}
+          env:
+            {{- range .Values.api.envs }}
+            {{- $data := dict "name" $.Values.api.deployment.name "env" . }}
+            {{- include "env.template" $data | nindent 12 }}
+            {{- end }}
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:{{ .Values.api.port }}/api
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 6
+

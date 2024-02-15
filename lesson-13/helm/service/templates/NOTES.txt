@@ -1,0 +1,1 @@
+Сервис {{ .Chart.Name }} {{ .Chart.AppVersion }} установлен

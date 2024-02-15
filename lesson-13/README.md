@@ -13,9 +13,11 @@
 
 1. Установка `helm`
 
-        wget https://get.helm.sh/helm-v3.14.0-linux-amd64.tar.gz
-        tar -zxvf helm-v3.14.0-linux-amd64.tar.gz
-        sudo mv linux-amd64/helm /usr/local/bin/helm
+        curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+        sudo apt-get install apt-transport-https --yes
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+        sudo apt-get update
+        sudo apt-get install helm
 
 1. Установка `gcloud CLI`
 
@@ -69,12 +71,50 @@ Kubernetes будем разворачивать в GKE с помощью Terraf
 
         helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
         helm repo update
-        helm install my-nginx-ingress ingress-nginx/ingress-nginx --set controller.publishService.enabled=true
+        helm install my-nginx-ingress ingress-nginx/ingress-nginx -n ingress-controller --create-namespace --set controller.publishService.enabled=true
 
 1. Проверяем что Ingress установлен
 
         kubectl get services
 
+1. Для доступа к приложению необходимо прописать ip адрес ingress контроллера в файле `C:\Windows\System32\drivers\etc\hosts`
+
+        x.x.x.x demo.test
+
+## Работа с секретами
+Kubernetes хранит секреты в виде base64 строки, поэтому для нормальной работы с секретами можно использовать плагин `helm-secrets` для helm. Для этого необходимо выполнить следующие шаги:
+
+1. Устанавливаем плагин
+
+        helm plugin install https://github.com/jkroepke/helm-secrets
+
+1. Устанавливаем sops
+
+        curl -LO https://github.com/getsops/sops/releases/download/v3.8.1/sops-v3.8.1.linux.amd64
+        sudo mv sops-v3.8.1.linux.amd64 /usr/local/bin/sops
+        sudo chmod +x /usr/local/bin/sops
+
+1. Генерируем ключ
+
+        gpg --gen-key
+
+1. В файл `.sops.yaml` прописываем ключ
+
+        ---
+        creation_rules:
+          - pgp: <gpg_key_id>
+
+1. Создаем секрет
+
+        helm secrets encrypt -i secrets.yml
+
+1. Редактируем секрет
+
+        helm secrets edit secrets.yml
+
+1. Запускаем развертывание
+
+        helm secrets upgrade app service -f secrets.yml
 
 ## Примечание
 Перед подключением к кластеру необходимо выполнить авторизацию в GCP
