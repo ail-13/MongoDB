@@ -1,0 +1,58 @@
+---
+- name: DockerInstall
+  become: true
+  block:
+    - name: Установка дополнительных пакетов
+      ansible.builtin.apt:
+        update_cache: true
+        state: present
+        name:
+          - ca-certificates
+
+    - name: Добавляем ключ Docker
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+        keyring: /usr/share/keyrings/docker.gpg
+
+    - name: Добавление репозитория Docker
+      ansible.builtin.apt_repository:
+        update_cache: true
+        repo: deb [arch={{ docker_apt_arch }} signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+        filename: docker
+      vars:
+        docker_apt_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
+    - name: Установка Docker
+      ansible.builtin.apt:
+        update_cache: true
+        state: present
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+          - docker-compose
+
+    - name: Проверяем что группа docker существует
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: "Добавление пользователя к группе docker"
+      ansible.builtin.user:
+        name: "{{ docker_user }}"
+        groups: docker
+        append: true
+
+    - name: Сбрасываем подключение чтобы обновились доступы пользователя
+      ansible.builtin.meta:
+        reset_connection
+
+    - name: Проверяем что Docker запущен
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true

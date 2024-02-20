@@ -1,0 +1,12 @@
+---
+- name: Устанавливаем клиент Percona Monitoring and Management
+  become: true
+  block:
+    - name: Run install_pmm_client.yml
+      ansible.builtin.include_tasks: install_pmm_client.yml
+
+- name: Настраиваем клиент Percona Monitoring and Management
+  become: true
+  block:
+    - name: Run config_pmm_client.yml
+      ansible.builtin.include_tasks: config_pmm_client.yml

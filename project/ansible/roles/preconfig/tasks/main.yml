@@ -1,0 +1,19 @@
+---
+- name: Добавляем хосты в /etc/hosts
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ item }}"
+    state: present
+  loop: "{{ preconfig_hosts }}"
+
+- name: Установка дополнительных пакетов
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    state: present
+    name:
+      - curl
+      - gnupg
+      - mc
+      - htop

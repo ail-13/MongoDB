@@ -1,0 +1,85 @@
+---
+- name: Регистрируемся на сервере PMM
+  when: groups['monitoring'] is defined and groups['monitoring'] | length > 0
+  block:
+    - name: Пробуем зарегистрироваться на сервере PMM
+      ansible.builtin.command:
+        cmd: >
+          pmm-admin config
+          --server-insecure-tls
+          --server-url=https://admin:{{ pmm_client_monitoring_password }}@{{ pmm_client_monitoring_ip }}:443
+          {% if pmm_client_force_config is defined and pmm_client_force_config == true %}
+          --force
+          {% endif %}
+
+      register: pmm_config_result
+      changed_when: true
+
+  rescue:
+    - name: Фактическая ошибка
+      ansible.builtin.fail:
+        msg: "Ошибка при регистрации на сервере PMM: {{ pmm_config_result }}"
+      when: pmm_config_result is not defined or pmm_config_result.stdout_lines is not defined
+
+    - name: Фактическая ошибка
+      ansible.builtin.fail:
+        msg: >
+          Ошибка при регистрации на сервере PMM: 
+          {{ mongo_config_result.stdout_lines
+            if mongo_config_result.stdout_lines | default([]) | length > 0
+            else (mongo_config_result.stderr_lines
+              if mongo_config_result.stderr_lines | default([]) | length > 0
+              else 'Нет дополнительных сведений') }}
+      when:
+        - pmm_config_result is defined
+        - pmm_config_result.stdout_lines is defined
+        - not (pmm_config_result.stdout_lines | default([]) | regex_search('Node with name .* already exists.'))
+
+    - name: Успешно
+      ansible.builtin.debug:
+        msg: Уже зарегистрирован на сервере PMM
+      when:
+        - pmm_config_result is defined
+        - pmm_config_result.stdout_lines is defined
+        - pmm_config_result.stdout_lines | default([]) | regex_search('Node with name .* already exists.')
+
+- name: Регистрируем сервис MongoDB на сервере PMM
+  when: groups['monitoring'] is defined and groups['monitoring'] | length > 0
+  block:
+    - name: Пробуем зарегистрировать сервис MongoDB на сервере PMM
+      ansible.builtin.command:
+        cmd: >
+          pmm-admin add mongodb
+          {% if env is defined %}
+          --environment={{ env }}
+          {% endif %}
+          --username={{ pmm_client_mongodb_percona_name }}
+          --password={{ pmm_client_mongodb_percona_pass }}
+          --replication-set={{ pmm_client_mongodb_rs_name }}
+          --cluster=cluster_{{ pmm_client_mongodb_rs_name }} {{ ansible_hostname }}-mongodb 127.0.0.1:{{ pmm_client_mongodb_port }}
+      when:
+        - pmm_client_mongodb_percona_pass is defined
+        - vm_metadata is defined
+        - vm_metadata.mongodb_role is defined
+        - vm_metadata.mongodb_role in ["PRIMARY", "SECONDARY"]
+      register: mongo_config_result
+      changed_when: true
+
+  rescue:
+    - name: Фактическая ошибка
+      ansible.builtin.fail:
+        msg: "Ошибка при регистрации сервиса MongoDB на сервере PMM: {{ mongo_config_result }}"
+      when: mongo_config_result is not defined or mongo_config_result.stdout_lines is not defined
+    - name: Фактическая ошибка
+      ansible.builtin.fail:
+        msg: >
+          Ошибка при регистрации на сервере PMM: 
+          {{ mongo_config_result.stdout_lines
+            if mongo_config_result.stdout_lines | default([]) | length > 0
+            else (mongo_config_result.stderr_lines
+              if mongo_config_result.stderr_lines | default([]) | length > 0
+              else 'Нет дополнительных сведений') }}
+      when:
+        - mongo_config_result is defined
+        - mongo_config_result.stdout_lines is defined
+        - not (mongo_config_result.stdout_lines | default([]) | regex_search('Service with name .* already exists.'))

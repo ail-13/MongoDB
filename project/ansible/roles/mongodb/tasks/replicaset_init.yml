@@ -1,0 +1,279 @@
+---
+- name: Проверяем что MongoDB запущена
+  ansible.builtin.service:
+    name: mongod
+    state: started
+    enabled: true
+
+- name: Задаем переменные для роли
+  ansible.builtin.set_fact:
+    member_weight:
+      PRIMARY: 1
+      SECONDARY: 0.5
+      ARBITER: 0
+
+- name: Определяем роль хоста
+  ansible.builtin.set_fact:
+    mongodb_primary: "{{ vm_metadata.mongodb_role == 'PRIMARY' }}"
+    mongodb_secondary: "{{ vm_metadata.mongodb_role == 'SECONDARY' }}"
+    mongodb_arbiter: "{{ vm_metadata.mongodb_role == 'ARBITER' }}"
+  when:
+    - vm_metadata is defined
+    - vm_metadata.mongodb_role is defined
+    - vm_metadata.mongodb_role in member_weight
+
+- name: Ждем пока MongoDB станет доступна
+  ansible.builtin.wait_for:
+    host: "localhost"
+    port: "{{ mongodb_port }}"
+    delay: 10
+    timeout: 120
+    state: started
+
+- name: Проверяем что хосты еще не включены в replicaset
+  ansible.builtin.shell: >-
+    mongo --port {{ mongodb_port }} --quiet --eval 'db.isMaster().hosts'
+  register: check_cluster
+  changed_when: false
+  when:
+    (mongodb_primary | default(false) | bool) or
+    (mongodb_secondary | default(false) | bool) or
+    (mongodb_arbiter | default(false) | bool)
+
+- name: Собираем конфигурацию кластера
+  block:
+    - name: Составляем список участников репликации
+      ansible.builtin.set_fact:
+        members: >-
+          {{
+            members | default([]) +
+            [{
+              'host': item + ':' + mongodb_port | string,
+              'priority': member_weight[hostvars[item].vm_metadata.mongodb_role]
+            }]
+          }}
+      loop: "{{ ansible_play_hosts }}"
+      when:
+        (hostvars[item].mongodb_primary | default(false) | bool) or
+        (hostvars[item].mongodb_secondary | default(false) | bool) or
+        (hostvars[item].mongodb_arbiter | default(false) | bool)
+      run_once: true
+
+    - name: Определяем индекс хоста, который является ARBITER
+      ansible.builtin.set_fact:
+        arbiter_index: "{{ hostid }}"
+      when: hostvars[item].mongodb_arbiter | default(false) | bool
+      loop: "{{ ansible_play_hosts }}"
+      loop_control:
+        index_var: hostid
+      run_once: true
+
+    - name: Проверяем что количество хостов нечетное
+      ansible.builtin.fail:
+        msg: "Количество хостов должно быть не четным"
+      when: members is not defined or members | length % 2 == 0
+      run_once: true
+
+# - name: Проверяем репликацию MongoDB
+#   when: check_cluster.stdout != ""
+#   block:
+#     - name: Проверяем статус replicaset MongoDB
+#       community.mongodb.mongodb_status:
+#         login_port: "{{ mongodb_port }}"
+#         replica_set: "{{ mongodb_rs_name }}"
+#         login_user: "{{ mongodb_root_name }}"
+#         login_password: "{{ mongodb_root_pass }}"
+#       no_log: true
+#       when: (mongodb_primary | default(false) | bool)
+#       register: mongodb_status
+
+#     - name: Проверяем настройки replicaset
+#       ansible.builtin.set_fact:
+#         check_results: "{{ check_results | default([]) + [item.host in mongodb_status.replicaset and
+#           member_weight[mongodb_status.replicaset[item.host]] == item.priority] }}"
+#       loop: "{{ members }}"
+#       when: (mongodb_primary | default(false) | bool)
+
+#     - name: Проверяем соответствие конфигурации replicaset
+#       ansible.builtin.fail:
+#         msg: Конфигурация replicaset не соответствует настройкам
+#       when: >-
+#         (mongodb_primary | default(false) | bool) and
+#         ((members | length != mongodb_status.replicaset.keys() | length) or
+#         false in check_results)
+
+#   rescue:
+#     - name: Устанавливаем флаг для выполнения перенастройки replicaset
+#       ansible.builtin.set_fact:
+#         mongodb_reconfig: true
+#       changed_when: true
+#       run_once: true
+
+- name: Устанавливаем флаг для выполнения настройки replicaset
+  ansible.builtin.set_fact:
+    mongodb_reconfig: true
+    mongodb_users: true
+  changed_when: true
+  run_once: true
+  when: check_cluster.stdout == ""
+
+- name: Проверяем пользователей MongoDB
+  when: check_cluster.stdout != ""
+  block:
+    - name: Проверяем наличие пользователей MongoDB
+      community.mongodb.mongodb_shell:
+        login_port: "{{ mongodb_port }}"
+        login_user: "{{ item.name }}"
+        login_password: "{{ item.pass }}"
+        mongo_cmd: auto
+        eval: "db.admin.runCommand({ ping: 1 })"
+      loop:
+        - name: "{{ mongodb_root_name }}"
+          pass: "{{ mongodb_root_pass }}"
+
+        - name: "{{ mongodb_percona_name }}"
+          pass: "{{ mongodb_percona_pass }}"
+
+        - name: "{{ mongodb_user_name }}"
+          pass: "{{ mongodb_user_pass }}"
+      changed_when: false
+      no_log: true
+      when: (mongodb_primary | default(false) | bool) or (mongodb_secondary | default(false) | bool)
+
+  rescue:
+    - name: Установить флаг для создания пользователей
+      ansible.builtin.set_fact:
+        mongodb_users: true
+      changed_when: true
+      run_once: true
+
+
+- name: Настраиваем кластер
+  when:
+    (
+      (mongodb_reconfig | default(false) | bool) or (mongodb_users | default(false) | bool)
+    ) and
+    (
+      (mongodb_primary | default(false) | bool) or
+      (mongodb_secondary | default(false) | bool) or
+      (mongodb_arbiter | default(false) | bool)
+    )
+  block:
+    - name: Останавливаем MongoDB
+      ansible.builtin.service:
+        name: mongod
+        state: stopped
+
+    - name: Переносим настройки MongoDB для инициализации replicaset
+      ansible.builtin.template:
+        src: mongod_init.conf.j2
+        dest: /etc/mongod.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Запускаем MongoDB без авторизации
+      ansible.builtin.service:
+        name: mongod
+        state: started
+
+    - name: Инициализируем replicaset
+      community.mongodb.mongodb_replicaset:
+        login_port: "{{ mongodb_port }}"
+        replica_set: "{{ mongodb_rs_name }}"
+        members: "{{ members }}"
+        arbiter_at_index: "{{ arbiter_index | default(omit) }}"
+        # reconfigure: true
+        # validate: false
+      when: (mongodb_reconfig | default(false) | bool) and (mongodb_primary | default(false) | bool)
+
+    - name: Ждем пока replicaset инициализируется
+      community.mongodb.mongodb_status:
+        login_port: "{{ mongodb_port }}"
+        poll: 5
+        interval: 10
+        replica_set: "{{ mongodb_rs_name }}"
+      when: (mongodb_reconfig | default(false) | bool) and (mongodb_primary | default(false) | bool)
+
+    - name: Создаем роль pbmAnyAction для резервного копирования
+      community.mongodb.mongodb_role:
+        login_port: "{{ mongodb_port }}"
+        database: admin
+        state: present
+        replica_set: "{{ mongodb_rs_name }}"
+        name: pbmAnyAction
+        privileges:
+          - resource: { anyResource: true }
+            actions: ["anyAction"]
+      when: (mongodb_users | default(false) | bool) and (mongodb_primary | default(false) | bool)
+
+    - name: Создаем роль explainRole для сбора статистики
+      community.mongodb.mongodb_role:
+        login_port: "{{ mongodb_port }}"
+        database: admin
+        state: present
+        replica_set: "{{ mongodb_rs_name }}"
+        name: explainRole
+        privileges:
+          - resource: { db: "", collection: "" }
+            actions:
+              [
+                "listIndexes",
+                "listCollections",
+                "dbStats",
+                "dbHash",
+                "collStats",
+                "find"
+              ]
+          - resource: { db: "", collection: "system.profile" }
+            actions: ["collStats", "dbStats", "indexStats"]
+      when: (mongodb_users | default(false) | bool) and (mongodb_primary | default(false) | bool)
+
+    - name: Создаем пользователей MongoDB
+      community.mongodb.mongodb_user:
+        login_port: "{{ mongodb_port }}"
+        database: admin
+        state: present
+        replica_set: "{{ mongodb_rs_name }}"
+        update_password: always
+        name: "{{ item.name }}"
+        password: "{{ item.pass }}"
+        roles: "{{ item.roles }}"
+      no_log: true
+      loop:
+        - name: "{{ mongodb_root_name }}"
+          pass: "{{ mongodb_root_pass }}"
+          roles:
+            - root
+
+        - name: "{{ mongodb_percona_name }}"
+          pass: "{{ mongodb_percona_pass }}"
+          roles:
+            [
+              { db: "admin", role: "explainRole" },
+              { db: "local", role: "read" },
+              { db: "admin", role: "readWrite" },
+              { db: "admin", role: "backup" },
+              { db: "admin", role: "clusterMonitor" },
+              { db: "admin", role: "restore" },
+              { db: "admin", role: "pbmAnyAction" }
+            ]
+
+        - name: "{{ mongodb_user_name }}"
+          pass: "{{ mongodb_user_pass }}"
+          roles:
+            - readWriteAnyDatabase
+      when: (mongodb_users | default(false) | bool) and (mongodb_primary | default(false) | bool)
+
+    - name: Возвращаем настройки MongoDB
+      ansible.builtin.template:
+        src: mongod.conf.j2
+        dest: /etc/mongod.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Перезапускаем MongoDB
+      ansible.builtin.service:
+        name: mongod
+        state: restarted

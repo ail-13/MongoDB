@@ -1,0 +1,4 @@
+# Добавляем секреты
+include_vars: secrets.yml
+
+monitoring_mongodb_ip: "{{ monitoring_ip }}"

@@ -1,0 +1,23 @@
+---
+- name: Создаем каталог pmm-server
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/pmm-server"
+    state: directory
+    group: "{{ ansible_user }}"
+    owner: "{{ ansible_user }}"
+    mode: "755"
+
+- name: Переносим docker-compose.yml на сервер
+  ansible.builtin.template:
+    src: "docker-compose.yml.j2"
+    dest: "/home/{{ ansible_user }}/pmm-server/docker-compose.yml"
+    group: "{{ ansible_user }}"
+    owner: "{{ ansible_user }}"
+    mode: "644"
+
+- name: Запуск Docker Compose
+  community.general.docker_compose:
+    project_src: "/home/{{ ansible_user }}/pmm-server"
+    state: present
+    build: true
+  register: docker_compose_result

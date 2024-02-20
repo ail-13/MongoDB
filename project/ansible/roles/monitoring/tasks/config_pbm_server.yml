@@ -1,0 +1,86 @@
+---
+- name: Исключаем арбитров из списка хостов MongoDB
+  ansible.builtin.set_fact:
+    mongodb_ip_list: "{{ mongodb_ip_list | default([]) + [item + ':' + monitoring_mongodb_port | string] }}"
+  loop: "{{ groups['db'] }}"
+  when:
+    - hostvars[item].vm_metadata is defined
+    - hostvars[item].vm_metadata.mongodb_role is defined
+    - hostvars[item].vm_metadata.mongodb_role in ["PRIMARY", "SECONDARY"]
+  run_once: true
+
+- name: Собираем ip адреса серверов MongoDB
+  ansible.builtin.set_fact:
+    mongodb_ip_list: "{{ mongodb_ip_list | join(',') }}"
+
+- name: Настраиваем подключение pbm к MongoDB
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^PBM_MONGODB_URI='
+    line: "PBM_MONGODB_URI=\"mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replSetName={{ monitoring_mongodb_rs_name }}\""
+  no_log: true
+
+- name: Считываем текущие настройки pbm config
+  ansible.builtin.command:
+    cmd: pbm config --mongodb-uri mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replSetName={{ monitoring_mongodb_rs_name }}
+  changed_when: false
+  no_log: true
+  register: pbm_config_result
+  when:
+    - not monitoring_percona_force_config
+    - monitoring_percona_force_config != 'true'
+    - not percona_install_result.changed
+
+- name: Сравниваем результат с файлом шаблона
+  ansible.utils.fact_diff:
+    before: "{{ pbm_config_result.stdout | from_yaml | to_nice_yaml }}"
+    after: "{{ lookup('template', 'pbm_config.yaml.j2') | from_yaml | to_nice_yaml }}"
+    plugin:
+      vars:
+        skip_lines:
+          - '.*access-key-id.*'
+          - '.*secret-access-key.*'
+  register: check_result
+  when:
+    - not monitoring_percona_force_config
+    - monitoring_percona_force_config != 'true'
+    - not percona_install_result.changed
+
+- name: Переносим настройки pbm
+  when:
+    percona_install_result.changed or
+    check_result.changed or
+    monitoring_percona_force_config or
+    monitoring_percona_force_config == 'true'
+  block:
+    - name: Копируем настройки pbm во временную папку
+      ansible.builtin.template:
+        src: pbm_config.yaml.j2
+        dest: /tmp/pbm_config.yaml
+      changed_when: false
+      no_log: true
+
+    - name: Обновляем настройки pbm config
+      ansible.builtin.command:
+        cmd: pbm config --file /tmp/pbm_config.yaml --mongodb-uri mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replSetName={{ monitoring_mongodb_rs_name }}
+      no_log: true
+      changed_when: true
+
+    - name: Удаляем файл с настройками pbm из временной папки
+      ansible.builtin.file:
+        path: /tmp/pbm_config.yaml
+        state: absent
+      changed_when: false
+
+  rescue:
+    - name: Удаляем файл с настройками pbm из временной папки
+      ansible.builtin.file:
+        path: /tmp/pbm_config.yaml
+        state: absent
+      changed_when: false
+      failed_when: true
+
+- name: Проверяем pbm status
+  ansible.builtin.command:
+    cmd: "pbm status --mongodb-uri mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replSetName={{ monitoring_mongodb_rs_name }}"
+  changed_when: false

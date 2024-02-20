@@ -1,0 +1,8 @@
+---
+- name: Устанавливаем тесовое приложение
+  hosts: app
+  gather_facts: true
+  gather_subset:
+    - min
+  roles:
+    - role: app

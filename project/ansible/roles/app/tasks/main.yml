@@ -1,0 +1,46 @@
+---
+- name: Устанавливаем Docker
+  ansible.builtin.include_role:
+    name: docker
+  vars:
+    docker_user: "{{ ansible_user }}"
+
+- name: Application
+  block:
+    - name: Переносим приложение
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/{{ app_path }}"
+        dest: "/home/{{ ansible_user }}/app/"
+        group: "{{ ansible_user }}"
+        owner: "{{ ansible_user }}"
+        mode: "644"
+        directory_mode: "755"
+
+    - name: Переносим переменные окружения для приложения
+      ansible.builtin.template:
+        src: templates/.env.j2
+        dest: "/home/{{ ansible_user }}/app/.env"
+        group: "{{ ansible_user }}"
+        owner: "{{ ansible_user }}"
+        mode: "644"
+      no_log: true
+
+    - name: Считываем UID пользователя
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ ansible_user }}"
+
+    - name: Переносим docker-compose.yml на сервер
+      ansible.builtin.template:
+        src: "docker-compose.yml.j2"
+        dest: "/home/{{ ansible_user }}/app/docker-compose.yml"
+        group: "{{ ansible_user }}"
+        owner: "{{ ansible_user }}"
+        mode: "644"
+
+    - name: Запуск Docker Compose
+      community.general.docker_compose:
+        project_src: "/home/{{ ansible_user }}/app"
+        env_file: .env
+        state: present
+        build: true

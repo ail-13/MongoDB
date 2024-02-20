@@ -1,0 +1,11 @@
+galaxy_info:
+  role_name: mongodb
+  author: ail-13
+  namespace: infra
+  description: Устанавливает на сервер MongoDB и Percona Backup for MongoDB клиент
+
+  license: All Rights Reserved
+
+  min_ansible_version: "2.10"
+
+dependencies: []

@@ -1,0 +1,4 @@
+---
+pmm_client_mongodb_port: 27017
+pmm_client_mongodb_rs_name: rs0
+pmm_client_mongodb_percona_name: percona

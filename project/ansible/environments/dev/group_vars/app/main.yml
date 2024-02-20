@@ -1,0 +1,9 @@
+# Добавляем секреты
+include_vars: secrets.yml
+
+app_db_host: "{{ groups['db'] | list }}"
+app_db_port: 27017
+app_path: "../../app/"
+
+pmm_client_monitoring_ip: "{{ monitoring_ip }}"
+pmm_client_monitoring_password: "{{ monitoring_password }}"

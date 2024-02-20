@@ -1,0 +1,55 @@
+---
+- name: Устанавливаем необходимые пакеты
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: preconfig
+
+- name: Настраиваем сервера под MongoDB
+  hosts: db
+  gather_facts: true
+  gather_subset:
+    - min
+  roles:
+    - role: mongodb
+
+- name: Устанавливаем dive
+  hosts: app
+  gather_facts: true
+  gather_subset:
+    - min
+  tasks:
+    - name: Устанавливаем dive только на stage и dev
+      ansible.builtin.include_role:
+        name: dive
+      when: env is defined and env in ["stage", "dev"]
+
+- name: Настраиваем сервера под приложение
+  hosts: app
+  gather_facts: true
+  gather_subset:
+    - min
+  roles:
+    - role: app
+
+- name: Настраиваем сервер мониторинга
+  hosts: monitoring
+  gather_facts: true
+  gather_subset:
+    - min
+  # vars:
+  #   monitoring_percona_force_config: true
+  roles:
+    - role: monitoring
+
+- name: Подключаем сервера к мониторингу
+  hosts:
+    - db
+    - app
+  gather_facts: true
+  gather_subset:
+    - min
+  # vars:
+  #   pmm_client_force_config: true
+  roles:
+    - role: pmm_client

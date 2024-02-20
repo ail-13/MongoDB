@@ -1,0 +1,32 @@
+---
+- name: Переносим настройки MongoDB
+  ansible.builtin.template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Перезапускаем MongoDB
+
+- name: Создаем каталог для данных
+  ansible.builtin.file:
+    path: "{{ mongodb_data_path }}/db"
+    state: directory
+    group: mongodb
+    owner: mongodb
+    mode: '0755'
+
+- name: Переносим файл ключа
+  ansible.builtin.copy:
+    src: "{{ mongodb_keyfile }}"
+    dest: "{{ mongodb_data_path }}/.mongokey"
+    group: mongodb
+    owner: mongodb
+    mode: '0400'
+  notify: Перезапускаем MongoDB
+
+- name: Проверяем что MongoDB запущена
+  ansible.builtin.service:
+    name: mongod
+    state: started
+    enabled: true

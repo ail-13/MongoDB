@@ -1,0 +1,7 @@
+# Добавляем секреты
+include_vars: secrets.yml
+
+pmm_client_mongodb_port: 27017
+pmm_client_mongodb_percona_pass: "{{ mongodb_percona_pass }}"
+pmm_client_monitoring_ip: "{{ monitoring_ip }}"
+pmm_client_monitoring_password: "{{ monitoring_password }}"

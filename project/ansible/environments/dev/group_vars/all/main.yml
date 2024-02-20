@@ -1,0 +1,6 @@
+# Добавляем секреты
+include_vars: secrets.yml
+
+env: dev
+
+monitoring_ip: "{{ hostvars[groups['monitoring'][0]]['ansible_host'] }}"

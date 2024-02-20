@@ -1,0 +1,33 @@
+---
+- name: Установка дополнительных пакетов
+  ansible.builtin.apt:
+    update_cache: true
+    state: present
+    name:
+      - python3-pip
+
+- name: Установить pymongo
+  ansible.builtin.pip:
+    name: pymongo
+    state: present
+    executable: pip3
+
+- name: Добавляем ключ MongoDB
+  ansible.builtin.apt_key:
+    url: "https://pgp.mongodb.com/server-{{ mongodb_version }}.asc"
+    state: present
+    keyring: /usr/share/keyrings/mongodb-server-{{ mongodb_version }}.gpg
+
+- name: Добавление репозитория MongoDB
+  ansible.builtin.apt_repository:
+    update_cache: true
+    repo: deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-{{ mongodb_version }}.gpg] https://repo.mongodb.org/apt/ubuntu {{ ansible_distribution_release }}/mongodb-org/{{ mongodb_version }} multiverse
+    state: present
+    filename: mongodb-org-{{ mongodb_version }}
+
+- name: Установка MongoDB
+  ansible.builtin.apt:
+    update_cache: true
+    state: present
+    name:
+      - mongodb-org

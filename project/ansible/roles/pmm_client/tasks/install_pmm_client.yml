@@ -1,0 +1,21 @@
+---
+- name: Добавляем ключ Percona
+  ansible.builtin.apt_key:
+    id: 9334A25F8507EFA5
+    keyserver: keyserver.ubuntu.com
+    state: present
+
+- name: Добавление репозитория Percona
+  ansible.builtin.apt_repository:
+    update_cache: true
+    repo: deb https://repo.percona.com/pmm2-client/apt/ {{ ansible_distribution_release }} main
+    state: present
+    filename: percona-pmm2-client-release
+
+- name: Установка Percona Monitoring and Management Client
+  ansible.builtin.apt:
+    update_cache: true
+    state: present
+    name:
+      - pmm2-client
+  register: percona_install_result

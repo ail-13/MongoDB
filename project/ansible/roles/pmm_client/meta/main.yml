@@ -1,0 +1,11 @@
+galaxy_info:
+  role_name: pmm_client
+  author: ail-13
+  namespace: infra
+  description: Устанавливает pmm client и настраивает его для работы с pmm server
+
+  license: All Rights Reserved
+
+  min_ansible_version: "2.10"
+
+dependencies: []

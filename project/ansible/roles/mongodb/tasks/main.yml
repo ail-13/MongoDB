@@ -1,0 +1,36 @@
+---
+- name: Устанавливаем MongoDB
+  become: true
+  block:
+    - name: Run install_mongodb.yml
+      ansible.builtin.include_tasks: install_mongodb.yml
+
+- name: Монтируем диск под базу данных
+  become: true
+  block:
+    - name: Run mount_disk.yml
+      ansible.builtin.include_tasks: mount_disk.yml
+
+- name: Переносим настройки и запускаем MongoDB
+  become: true
+  block:
+    - name: Run config_mongodb.yml
+      ansible.builtin.include_tasks: config_mongodb.yml
+
+- name: Инициализируем replicaset MongoDB
+  become: true
+  block:
+    - name: Run replicaset_init.yml
+      ansible.builtin.include_tasks: replicaset_init.yml
+
+- name: Устанавливаем Percona Backup for MongoDB
+  become: true
+  block:
+    - name: Run install_pbm_client.yml
+      ansible.builtin.include_tasks: install_pbm_client.yml
+
+- name: Настраиваем Percona Backup for MongoDB
+  become: true
+  block:
+    - name: Run config_pbm_client.yml
+      ansible.builtin.include_tasks: config_pbm_client.yml

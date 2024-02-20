@@ -1,0 +1,7 @@
+---
+monitoring_percona_version: latest
+monitoring_percona_force_config: false
+monitoring_data_path: /monitoring_data
+monitoring_mongodb_user: percona
+monitoring_mongodb_port: 27017
+monitoring_mongodb_rs_name: rs0

@@ -1,0 +1,13 @@
+---
+- name: Настраиваем подключение pbm-agent к MongoDB
+  ansible.builtin.copy:
+    content: 'PBM_MONGODB_URI="mongodb://{{ mongodb_percona_name }}:{{ mongodb_percona_pass }}@localhost:{{ mongodb_port }}/?authSource=admin"'
+    dest: /etc/default/pbm-agent
+  no_log: true
+  notify: Перезапускаем pbm-agent
+
+- name: Проверяем что pbm-agent запущен
+  ansible.builtin.service:
+    name: pbm-agent
+    state: started
+    enabled: true

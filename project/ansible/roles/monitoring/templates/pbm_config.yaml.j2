@@ -1,0 +1,21 @@
+pitr:
+  enabled: false
+  oplogSpanMin: 0
+  compression: zstd
+storage:
+ type: s3
+ s3:
+  provider: gcs
+  region: eu
+  forcePathStyle: true
+  bucket: {{ monitoring_backup_bucket }}
+  prefix: cluster_{{ monitoring_mongodb_rs_name }}
+  endpointUrl: https://storage.googleapis.com
+  credentials:
+    access-key-id: {{ monitoring_backup_access_key }}
+    secret-access-key: {{ monitoring_backup_secret_key }}
+  maxUploadParts: 10000
+  storageClass: STANDARD
+  insecureSkipTLSVerify: false
+backup:
+  compression: zstd

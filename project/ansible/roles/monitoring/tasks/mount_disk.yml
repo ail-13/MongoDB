@@ -1,0 +1,31 @@
+---
+- name: Создаем точку монтирования
+  ansible.builtin.file:
+    path: "{{ monitoring_data_path }}"
+    state: directory
+
+- name: Форматирование диска под базу данных в ext4
+  community.general.filesystem:
+    fstype: ext4
+    state: present  # Если файловой системы нет, то диск будет отформатирован
+                    # Если файлова система ext4, то идем дальше
+                    # Если фаловая система есть и она не ext4, то будет ошибка
+    dev: /dev/{{ vm_disk }}
+  when:
+    - vm_disk is defined
+    - vm_disk is string
+    - vm_disk | length >= 3
+
+- name: Монтирование диска
+  ansible.posix.mount:
+    src: /dev/{{ vm_disk }}
+    path: "{{ monitoring_data_path }}"
+    fstype: ext4
+    state: mounted
+    opts: defaults
+    dump: 0
+    passno: 2
+  when:
+    - vm_disk is defined
+    - vm_disk is string
+    - vm_disk | length >= 3
