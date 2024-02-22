@@ -17,12 +17,12 @@
   ansible.builtin.lineinfile:
     path: /etc/environment
     regexp: '^PBM_MONGODB_URI='
-    line: "PBM_MONGODB_URI=\"mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replSetName={{ monitoring_mongodb_rs_name }}\""
+    line: "PBM_MONGODB_URI=\"mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replicaSet={{ monitoring_mongodb_rs_name }}\""
   no_log: true
 
 - name: Считываем текущие настройки pbm config
   ansible.builtin.command:
-    cmd: pbm config --mongodb-uri mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replSetName={{ monitoring_mongodb_rs_name }}
+    cmd: pbm config --mongodb-uri mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replicaSet={{ monitoring_mongodb_rs_name }}
   changed_when: false
   no_log: true
   register: pbm_config_result
@@ -62,7 +62,7 @@
 
     - name: Обновляем настройки pbm config
       ansible.builtin.command:
-        cmd: pbm config --file /tmp/pbm_config.yaml --mongodb-uri mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replSetName={{ monitoring_mongodb_rs_name }}
+        cmd: pbm config --file /tmp/pbm_config.yaml --mongodb-uri mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replicaSet={{ monitoring_mongodb_rs_name }}
       no_log: true
       changed_when: true
 
@@ -82,5 +82,5 @@
 
 - name: Проверяем pbm status
   ansible.builtin.command:
-    cmd: "pbm status --mongodb-uri mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replSetName={{ monitoring_mongodb_rs_name }}"
+    cmd: "pbm status --mongodb-uri mongodb://{{ monitoring_mongodb_user }}:{{ monitoring_mongodb_pass }}@{{ mongodb_ip_list }}/?authSource=admin&replicaSet={{ monitoring_mongodb_rs_name }}"
   changed_when: false
