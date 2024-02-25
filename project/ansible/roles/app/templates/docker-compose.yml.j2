@@ -9,5 +9,5 @@ services:
     env_file: ./.env
     ports:
       - 3000:3000
-    user: "{{ ansible_facts.getent_passwd.mongo_user[1] }}:{{ ansible_facts.getent_passwd.mongo_user[2] }}"
+    user: "{{ ansible_facts.getent_passwd[ansible_user][1] }}:{{ ansible_facts.getent_passwd[ansible_user][2] }}"
     command: ["node", "./src/app.js"]
