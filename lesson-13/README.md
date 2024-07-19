@@ -75,7 +75,7 @@ Kubernetes будем разворачивать в GKE с помощью Terraf
 
 1. Проверяем что Ingress установлен
 
-        kubectl get services
+        kubectl get services -n ingress-controller
 
 1. Для доступа к приложению необходимо прописать ip адрес ingress контроллера в файле `C:\Windows\System32\drivers\etc\hosts`
 
